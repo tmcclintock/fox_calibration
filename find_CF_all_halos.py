@@ -1,8 +1,7 @@
 """
 Run corrfunc on the fox halos to produce correlation functions.
 
-First I calculate halo-halo correlation functions for
-all 
+First I calculate halo-halo correlation functions for all redshifts.
 """
 import numpy as np
 import matplotlib.pyplot as plt
@@ -23,12 +22,12 @@ R = (bins[:-1]+bins[1:])/2.
 
 dohh = False
 calchh = False
-dohm = True
+dohm = False
 calchm = False
 
 inds = [6,7,8,9]
 zs = [1.0, 0.5, 0.25, 0.0]
-zstrings = ["1.0", "0.5", "0.25", "0.0"]
+zstrings = ["1.0", "0.5", "0.25", "0.0"] #For DM catalogs
 
 if dohh:
     if calchh:
