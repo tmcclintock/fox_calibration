@@ -22,9 +22,9 @@ nbins = 50
 bins = np.logspace(np.log10(0.01), np.log10(150.0), nbins+1)
 R = (bins[:-1]+bins[1:])/2.
 
-dohh = True
-calchh = True
-dohm = False
+dohh = False
+calchh = False
+dohm = True
 calchm = True
 
 inds = [6,7,8,9]
@@ -60,35 +60,39 @@ if dohh:
 
 if dohm:
     for i in range(len(inds)):
-        if i < 2: continue
+        if i > 0: continue
         cmap = plt.get_cmap(cmaps[i])
         index = inds[i]
         z = zs[i]
         zstring = zstrings[i]
-        for j in linds:
-            if calchm:
+        if calchm:
+            print "finding HMCF at z=%.2f"%z
+            Xd, Yd, Zd = pgr.readsnap(dmpath%(index,index,zstring), 'pos', 'dm').T
+            Xd = Xd.astype('float64')
+            Yd = Yd.astype('float64')
+            Zd = Zd.astype('float64')
+            N_dm = len(Xd)
+            N_rand = int(N_dm*1.5)
+            Xr1 = np.random.uniform(0, boxsize, N_rand)
+            Yr1 = np.random.uniform(0, boxsize, N_rand)
+            Zr1 = np.random.uniform(0, boxsize, N_rand)
+            Xr2 = np.random.uniform(0, boxsize, N_rand)
+            Yr2 = np.random.uniform(0, boxsize, N_rand)
+            Zr2 = np.random.uniform(0, boxsize, N_rand)
+            print "starting on RR"
+            RhRd = DD(0, nthreads, bins, Xr1, Yr1, Zr1,
+                      X2=Xr2, Y2=Yr2, Z2=Zr2)
+            print "finished with RR"
+
+            for j in linds:
+                print "at l%d"%j
                 Xh, Yh, Zh, Np, M, Rich = np.genfromtxt(halopath%(index,j,index), unpack=True)
                 N_h = len(Xh)
-                Xd, Yd, Zd = pgr.readsnap(dmpath%(index,index,zstring), 'pos', 'dm').T
-                Xd = Xd.astype('float64')
-                Yd = Yd.astype('float64')
-                Zd = Zd.astype('float64')
-                N_dm = len(Xd)
-                N_rand = int(N_dm*1.5)
-                Xr1 = np.random.uniform(0, boxsize, N_rand)
-                Yr1 = np.random.uniform(0, boxsize, N_rand)
-                Zr1 = np.random.uniform(0, boxsize, N_rand)
-                Xr2 = np.random.uniform(0, boxsize, N_rand)
-                Yr2 = np.random.uniform(0, boxsize, N_rand)
-                Zr2 = np.random.uniform(0, boxsize, N_rand)
-                print "finding HMCF at z=%.2f"%z
                 DhDd = DD(0, nthreads, bins, X1=Xh, Y1=Yh, Z1=Zh, 
                           X2=Xd, Y2=Yd, Z2=Zd)
                 DhRh = DD(0, nthreads, bins, Xh, Yh, Zh,
                           X2=Xr1, Y2=Yr1, Z2=Zr1)
                 DdRd = DD(0, nthreads, bins, Xd, Yd, Zd,
-                          X2=Xr2, Y2=Yr2, Z2=Zr2)
-                RhRd = DD(0, nthreads, bins, Xr1, Yr1, Zr1,
                           X2=Xr2, Y2=Yr2, Z2=Zr2)
                 hmcf = convert_3d_counts_to_cf(N_h, N_dm, N_rand, N_rand,
                                                DhDd, DhRh, DdRd, RhRd)
@@ -100,6 +104,6 @@ if dohm:
         plt.xlabel(r"$R\ [{\rm Mpc/h}]$", fontsize=24)
         plt.ylabel(r"$\xi_{\rm hm}$", fontsize=24)
         plt.subplots_adjust(bottom=0.15)
-        #plt.show()
         plt.gcf().savefig("figures/hmcf_richnesses_z%0.2f.png"%z)
+        plt.show()
         plt.clf()
