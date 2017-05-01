@@ -22,9 +22,9 @@ nbins = 50
 bins = np.logspace(np.log10(0.01), np.log10(150.0), nbins+1)
 R = (bins[:-1]+bins[1:])/2.
 
-dohh = False
-calchh = False
-dohm = True
+dohh = True
+calchh = True
+dohm = False
 calchm = True
 
 inds = [6,7,8,9]
@@ -48,13 +48,14 @@ if dohh:
         for j in linds:
             result = np.loadtxt("txt_files/richness_txt_files/hhcf_z%.2f_l%d.txt"%(z,j)).T
             hhcf = result[3]
+            cmap = plt.get_cmap(cmaps[i])
             plt.loglog(R, hhcf, c=cmap(c[j]), label="z=%.2f l%d"%(z,j))
         plt.legend(loc=0)
         plt.xlabel(r"$R\ [{\rm Mpc/h}]$", fontsize=24)
         plt.ylabel(r"$\xi_{\rm hh}$", fontsize=24)
         plt.subplots_adjust(bottom=0.15)
-        #plt.show()
         plt.gcf().savefig("figures/hhcf_richnesses_z%0.2f.png"%z)
+        #plt.show()
         plt.clf()
 
 if dohm:
