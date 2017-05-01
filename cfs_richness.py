@@ -59,6 +59,7 @@ if dohh:
 
 if dohm:
     for i in range(len(inds)):
+        if i < 2: continue
         cmap = plt.get_cmap(cmaps[i])
         index = inds[i]
         z = zs[i]
@@ -98,6 +99,6 @@ if dohm:
         plt.xlabel(r"$R\ [{\rm Mpc/h}]$", fontsize=24)
         plt.ylabel(r"$\xi_{\rm hm}$", fontsize=24)
         plt.subplots_adjust(bottom=0.15)
-        plt.show()
+        #plt.show()
         plt.gcf().savefig("figures/hmcf_richnesses_z%0.2f.png"%z)
         plt.clf()
