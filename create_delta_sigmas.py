@@ -67,5 +67,5 @@ for i in range(len(inds)):
 plt.xlabel(r"$R\ [{\rm Mpc}/h]$")
 plt.ylabel(r"$\Delta\Sigma\ [{\rm M_\odot}h/{\rm pc^2}]$")
 plt.subplots_adjust(bottom=0.15, left=0.15)
-plt.xlim(0.1, 1000)
+#plt.xlim(0.1, 1000)
 plt.show()
