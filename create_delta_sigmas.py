@@ -12,7 +12,6 @@ from colossus.cosmology import cosmology as col_cosmology
 plt.rc("text",usetex=True, fontsize=24)
 
 inpath  = "txt_files/richness_txt_files/hmcf_z%0.2f_l%d.txt"
-covpath = "/home/tmcclintock/Desktop/des_wl_work/Y1_work/blinded_data/v1/full-mcal-urem_y1subtr_l%d_z%d_dst_cov.dat"
 
 #The radial points of all data
 nbins = 50
