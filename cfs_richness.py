@@ -25,7 +25,7 @@ R = (bins[:-1]+bins[1:])/2.
 dohh = False
 calchh = False
 dohm = True
-calchm = True
+calchm = False
 
 inds = [6,7,8,9]
 zs = [1.0, 0.5, 0.25, 0.0]
@@ -60,7 +60,7 @@ if dohh:
 
 if dohm:
     for i in range(len(inds)):
-        if i > 0: continue
+        if i == 0: continue
         cmap = plt.get_cmap(cmaps[i])
         index = inds[i]
         z = zs[i]
@@ -96,7 +96,7 @@ if dohm:
                           X2=Xr2, Y2=Yr2, Z2=Zr2)
                 hmcf = convert_3d_counts_to_cf(N_h, N_dm, N_rand, N_rand,
                                                DhDd, DhRh, DdRd, RhRd)
-                np.savetxt("txt_files/richness_txt_files/hmcf_z%.2f_l%d.txt"%(z,j),hmcf)
+                #np.savetxt("txt_files/richness_txt_files/hmcf_z%.2f_l%d.txt"%(z,j),hmcf)
         for j in linds:
             hmcf = np.loadtxt("txt_files/richness_txt_files/hmcf_z%.2f_l%d.txt"%(z,j))
             plt.loglog(R, hmcf, label="z=%.2f l%d"%(z,j))
@@ -105,5 +105,5 @@ if dohm:
         plt.ylabel(r"$\xi_{\rm hm}$", fontsize=24)
         plt.subplots_adjust(bottom=0.15)
         plt.gcf().savefig("figures/hmcf_richnesses_z%0.2f.png"%z)
-        plt.show()
+        #plt.show()
         plt.clf()
