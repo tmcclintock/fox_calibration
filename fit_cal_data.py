@@ -22,6 +22,8 @@ linds = range(0,7)
 Nz = len(zs)
 Nl = len(linds)
 
+#Get the power spectra from somewhere TODO
+
 #Write the likelihoods
 def lnprior(lM):
     if lM < 10: return -np.inf
