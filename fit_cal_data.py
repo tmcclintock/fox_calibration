@@ -8,6 +8,8 @@ import numpy as np
 import os, sys, emcee
 import scipy.optimize as op
 import matplotlib.pyplot as plt
+sys.path.insert(0, "../Delta-Sigma/src/wrapper/")
+import py_Delta_Sigma as pyDS
 
 #Paths to the data and covariance
 datapath = "/home/tmcclintock/Desktop/des_wl_work/Y1_work/blinded_data/calibration_data/cal_profile_z%.2f_l%d.txt"
