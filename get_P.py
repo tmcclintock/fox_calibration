@@ -20,7 +20,7 @@ params = {
         "omega_b":Ob,
         "omega_cdm":Ocdm,
         'YHe':0.24755048455476272,#By hand, default value
-        'P_k_max_h/Mpc':2000.,
+        'P_k_max_h/Mpc':20000.,
         'z_max_pk':1.0,
         'non linear':'halofit'}
 
@@ -29,7 +29,7 @@ cosmo.set(params)
 cosmo.compute()
 
 
-k = np.logspace(-5, 3, base=10, num=1000)
+k = np.logspace(-5, 4, base=10, num=1000)
 np.savetxt("txt_files/P_files/k.txt", k)
 for i in range(len(zs)):
     z = zs[i]

@@ -40,11 +40,10 @@ params = {"NR":300,"Rmin":0.01,
           "Rmis":0.2, "fmis":0.0,
           "miscentering":0,"averaging":1}
 
-bfmasses = np.loadtxt("txt_files/BF_masses.txt")
 masses = np.loadtxt("txt_files/mean_masses.txt")
 
 for i in range(len(inds)):
-    if i < 3: continue
+    if i < 0: continue
     cmap = plt.get_cmap(cmaps[i])
     index = inds[i]
     z = zs[i]
@@ -54,28 +53,28 @@ for i in range(len(inds)):
     #Give the bin edges in comoving units; Mpc/h
     params["R_bin_min"] = 0.0323*h*(1+z)
     params["R_bin_max"] = 30.0*h*(1+z)
-    for j in range(1):#linds:
+    for j in linds:
         R, DS, err, flag = np.loadtxt(datapath%(z, j), unpack=True)
-        lM = bfmasses[i,j]
-        #lM = np.log10(masses[i,j])
+        lM = np.log10(masses[i,j])
         print 10**lM
         params['Mass'] = 10**lM
         params["concentration"] = conc.concentration(10**lM, 
                                                      '200m', z, 
                                                      model='diemer15')
-        result = pyDS.calc_Delta_Sigma(k, Plin, k, Pnl, cosmo, params)
+        k2 = np.copy(k)
+        result = pyDS.calc_Delta_Sigma(k, Plin, k2, Plin, cosmo, params)
         R = result['R']
         xi = result['xi_hm']
-        print result.keys()
-
         xi_data = np.loadtxt("txt_files/richness_txt_files/hmcf_z%.2f_l%d.txt"%(z, j))
-        print xi.shape, xi_data.shape, R.shape, Rd.shape
+        #print xi.shape, xi_data.shape, R.shape, Rd.shape
         plt.loglog(R, xi, label=r"Model", c='r')
-        plt.loglog(R, result['xi_1halo'], c='b', ls='--')
-        plt.loglog(R, result['xi_2halo'], c='b', ls='--')
+        #plt.loglog(R, result['xi_1halo'], c='b', ls='--')
+        #plt.loglog(R, result['xi_2halo'], c='b', ls='--')
         plt.loglog(Rd, xi_data, label=r"Sims", c='g')
         plt.xlabel(r"$R\ [{\rm Mpc/h}]$")
         plt.ylabel(r"$\xi_{\rm hm}$")
         plt.subplots_adjust(bottom=0.15, left=0.15)
         plt.legend()
-        plt.show()
+        plt.title("z=%.2f"%z)
+        plt.gcf().savefig("xi_comparison_z%.2f.png"%z)
+    plt.show()
