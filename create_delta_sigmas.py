@@ -40,12 +40,12 @@ masses = np.loadtxt("txt_files/mean_masses.txt")
 
 #Loop over all bins
 DeltaSigmas = []
-for i in range(len(inds)):
+for i in range(1):#len(inds)):
     index = inds[i]
     z = zs[i]
     zstring = zstrings[i]
     cmap = plt.get_cmap(cmaps[i])
-    for j in linds:
+    for j in range(1):#linds:
         M = masses[i,j]
         xi_hm = np.loadtxt(inpath%(z, j))
         input_params = {"Mass": masses[i, j], "delta":200, 
@@ -57,12 +57,16 @@ for i in range(len(inds)):
                                                           cosmo, 
                                                           input_params)
         ds = results['delta_sigma']
+        sig= results['sigma_r']
+        xi = results['xi_hm']
+        plt.loglog(R, xi)
+        plt.loglog(R, sig)
         print results.keys()
         if j == 0:
             plt.loglog(R, ds, c=cmap(c[j]), label=r"z=%.2f"%(z))
         else:
             plt.loglog(R, ds, c=cmap(c[j]))#, label=r"z=%.2f l%d"%(z,j))
-        np.savetxt("txt_files/richness_txt_files/deltasigma_z%.2f_l%d.txt"%(z, j), ds)
+        #np.savetxt("txt_files/richness_txt_files/deltasigma_z%.2f_l%d.txt"%(z, j), ds)
     plt.legend(loc=0, fontsize=12)
 plt.xlabel(r"$R\ [{\rm Mpc}/h]$")
 plt.ylabel(r"$\Delta\Sigma\ [{\rm M_\odot}h/{\rm pc^2}]$")
