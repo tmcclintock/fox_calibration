@@ -98,8 +98,8 @@ def do_mcmc():
     return 0
 
 if __name__ == "__main__":
-    bfmasses = best_fits()
-    np.savetxt("txt_files/BF_masses_withc.txt", bfmasses)
+    #bfmasses = best_fits()
+    #np.savetxt("txt_files/BF_masses.txt", bfmasses)
 
     bfmasses = np.loadtxt("txt_files/BF_masses.txt")
     print bfmasses

@@ -62,7 +62,7 @@ for i in range(len(inds)):
                                                      '200m', z, 
                                                      model='diemer15')
         k2 = np.copy(k)
-        result = pyDS.calc_Delta_Sigma(k, Plin, k2, Plin, cosmo, params)
+        result = pyDS.calc_Delta_Sigma(k, Plin, k2, Pnl, cosmo, params)
         R = result['R']
         xi = result['xi_hm']
         xi_data = np.loadtxt("txt_files/richness_txt_files/hmcf_z%.2f_l%d.txt"%(z, j))
@@ -74,7 +74,7 @@ for i in range(len(inds)):
         plt.xlabel(r"$R\ [{\rm Mpc/h}]$")
         plt.ylabel(r"$\xi_{\rm hm}$")
         plt.subplots_adjust(bottom=0.15, left=0.15)
-        plt.legend()
+        #plt.legend()
         plt.title("z=%.2f"%z)
         plt.gcf().savefig("xi_comparison_z%.2f.png"%z)
     plt.show()
