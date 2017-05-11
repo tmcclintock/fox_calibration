@@ -1,4 +1,7 @@
+
+txt_files/chains/*
 figures
+*.png
 *~
 
 # Byte-compiled / optimized / DLL files

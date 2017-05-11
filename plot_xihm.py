@@ -40,7 +40,7 @@ params = {"NR":300,"Rmin":0.01,
           "Rmis":0.2, "fmis":0.0,
           "miscentering":0,"averaging":1}
 
-masses = np.loadtxt("txt_files/mean_masses.txt")
+masses = np.loadtxt("txt_files/true_masses.txt")
 
 for i in range(len(inds)):
     if i < 0: continue

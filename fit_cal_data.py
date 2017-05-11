@@ -24,8 +24,6 @@ linds = range(0,7)
 Nz = len(zs)
 Nl = len(linds)
 
-#Get the power spectra wavenumbers
-k = np.loadtxt("txt_files/P_files/k.txt")
 
 #This is the fox sim cosmology
 h = 0.670435
@@ -56,7 +54,7 @@ def lnlike(params, R, ds, icov, flags, z, extras):
     model = result['ave_delta_sigma']*h*(1.+z)**2 #Msun/pc^2 physical
     X = ds - model
     X = X[flags]
-    return np.dot(X, np.dot(icov, X))
+    return -0.5*np.dot(X, np.dot(icov, X))
 
 def lnprob(params, R, ds, icov, flags, z, extras):
     lM = params
@@ -74,6 +72,7 @@ def best_fits():
         index = inds[i]
         z = zs[i]
         #Get power spectra
+        k = np.loadtxt("txt_files/P_files/k.txt")
         Plin = np.loadtxt("txt_files/P_files/Plin_z%.2f.txt"%z)
         Pmm  = np.loadtxt("txt_files/P_files/Pnl_z%.2f.txt"%z)
         extras = (k, Plin, Pmm, cosmo, input_params)
@@ -87,20 +86,72 @@ def best_fits():
             cov = cov[flags]
             cov = cov[:, flags]
             icov = np.linalg.inv(cov)            
-            nll = lambda *args:lnprob(*args)
+            nll = lambda *args: -lnprob(*args)
             result = op.minimize(nll, x0=13.2,
                                  args=(R, DS, icov, flags, z, extras))
             print result
             bfmasses[i, j] = result['x'][0]
     return bfmasses
 
-def do_mcmc():
+def do_mcmc(bfmasses):
+    """
+    Find the mcmc masses, where we will end up starting the chain.
+    """
+    nwalkers = 4
+    ndim = 1
+    nsteps = 10000
+    for i in range(len(inds)):
+        index = inds[i]
+        z = zs[i]
+        #Get power spectra
+        k = np.loadtxt("txt_files/P_files/k.txt")
+        Plin = np.loadtxt("txt_files/P_files/Plin_z%.2f.txt"%z)
+        Pmm  = np.loadtxt("txt_files/P_files/Pnl_z%.2f.txt"%z)
+        #Give the bin edges in comoving units; Mpc/h
+        input_params["R_bin_min"] = 0.0323*(h*(1+z))
+        input_params["R_bin_max"] = 30.0*(h*(1+z))
+        extras = (k, Plin, Pmm, cosmo, input_params)
+        for j in linds:
+            pos = [bfmasses[i, j] + 1e-4*np.random.randn(ndim) for nw in range(nwalkers)]
+            R, DS, err, flag = np.loadtxt(datapath%(z, j), unpack=True)
+            flags = np.where(flag==1)[0]
+            cov = np.loadtxt(covpath%(z, j))
+            cov = cov[flags]
+            cov = cov[:, flags]
+            icov = np.linalg.inv(cov)
+            sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob, args=(R, DS, icov, flags, z, extras), threads=8)
+            print "Running chain for z=%f l%d starting at lM=%.3f"%(z, j, bfmasses[i,j])
+            sampler.run_mcmc(pos, nsteps)
+            print "\tchain complete for z=%f l%d starting at lM=%.3f"%(z, j, bfmasses[i,j])
+            chain = sampler.flatchain
+            likes = sampler.flatlnprobability
+            np.savetxt("txt_files/chains/chain_z%.2f_l%d.txt"%(z, j), chain)
+            np.savetxt("txt_files/chains/likes_z%.2f_l%d.txt"%(z, j), likes)
     return 0
+
+def reduce_chains():
+    nsteps = 100
+    nburn  = nsteps/2
+    nwalkers = 4
+    masses = np.ones((Nz,Nl))
+    err  = np.ones_like(masses)
+    for i in range(1):#len(inds)):
+        index = inds[i]
+        z = zs[i]
+        for j in linds:
+            chain = np.genfromtxt("txt_files/chains/chain_z%.2f_l%d.txt"%(z, j))
+            masses[i, j] = np.mean(chain)
+            err[i, j]  = np.std(chain)
+            print "lM=%.3f +- %.3f at z%.2f l%d"%(masses[i,j], err[i,j], z, j)
+    np.savetxt("txt_files/mcmc_masses.txt", masses)
+    np.savetxt("txt_files/mcmc_errs.txt", err)
+    return
 
 if __name__ == "__main__":
     #bfmasses = best_fits()
     #np.savetxt("txt_files/BF_masses.txt", bfmasses)
 
     bfmasses = np.loadtxt("txt_files/BF_masses.txt")
-    print bfmasses
-    do_mcmc()
+    do_mcmc(bfmasses)
+
+    reduce_chains()

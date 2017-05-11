@@ -38,8 +38,9 @@ params = {"NR":300,"Rmin":0.01,
           "Rmis":0.2, "fmis":0.0,
           "miscentering":0,"averaging":1}
 
-#bfmasses = np.loadtxt("txt_files/BF_masses.txt")
-masses = np.loadtxt("txt_files/mean_masses.txt")
+#masses = np.loadtxt("txt_files/BF_masses.txt")
+masses = np.loadtxt("txt_files/mcmc_masses.txt")
+#masses = np.log10(np.loadtxt("txt_files/true_masses.txt"))
 
 for i in range(len(inds)):
     cmap = plt.get_cmap(cmaps[i])
@@ -53,8 +54,7 @@ for i in range(len(inds)):
     params["R_bin_max"] = 30.0*h*(1+z)
     for j in linds:
         R, DS, err, flag = np.loadtxt(datapath%(z, j), unpack=True)
-        #lM = bfmasses[i,j]
-        lM = np.log10(masses[i,j])
+        lM = masses[i,j]
         print 10**lM
         params['Mass'] = 10**lM
         params["concentration"] = conc.concentration(10**lM, 
@@ -68,6 +68,6 @@ for i in range(len(inds)):
     plt.xlabel(r"$R\ [{\rm Mpc}]$")
     plt.ylabel(r"$\Delta\Sigma\ [{\rm M_\odot/pc^2}]$")
     plt.title("z=%.2f"%z)
-    plt.subplots_adjust(bottom=0.15, left=0.15)
+    plt.subplots_adjust(bottom=0.17, left=0.2)
     plt.gcf().savefig("BFs_z%.2f.png"%z)
     plt.show()
