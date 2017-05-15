@@ -135,7 +135,7 @@ def reduce_chains():
     nwalkers = 4
     masses = np.ones((Nz,Nl))
     err  = np.ones_like(masses)
-    for i in range(1):#len(inds)):
+    for i in range(len(inds)):
         index = inds[i]
         z = zs[i]
         for j in linds:
@@ -151,7 +151,7 @@ if __name__ == "__main__":
     #bfmasses = best_fits()
     #np.savetxt("txt_files/BF_masses.txt", bfmasses)
 
-    bfmasses = np.loadtxt("txt_files/BF_masses.txt")
-    do_mcmc(bfmasses)
+    #bfmasses = np.loadtxt("txt_files/BF_masses.txt")
+    #do_mcmc(bfmasses)
 
     reduce_chains()
