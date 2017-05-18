@@ -8,21 +8,30 @@ import numpy as np
 import os, sys, emcee
 import scipy.optimize as op
 import matplotlib.pyplot as plt
-sys.path.insert(0, "../Delta-Sigma/src/wrapper/")
+sys.path.insert(0, "../../Delta-Sigma/src/wrapper/")
 import py_Delta_Sigma as pyDS
 from colossus.halo import concentration as conc
 from colossus.cosmology import cosmology as col_cosmology
 
+Y1 = False
+
 #Paths to the data and covariance
-datapath = "/home/tmcclintock/Desktop/des_wl_work/Y1_work/blinded_data/calibration_data/cal_profile_z%.2f_l%d.txt"
-covpath = "/home/tmcclintock/Desktop/des_wl_work/Y1_work/blinded_data/calibration_data/cal_cov_z%.2f_l%d.txt"
+if Y1:
+    print "no implemented yet"
+else:
+    datapath = "/home/tmcclintock/Desktop/des_wl_work/SV_work/calibration_work/calibration_data/cal_profile_z%.2f_m%d"
+    covpath  = "/home/tmcclintock/Desktop/des_wl_work/SV_work/calibration_work/calibration_data/cal_cov_z%.2f_m%d"
 
 #Snapshot characteristics
 inds = [6,7,8,9]
 zs = [1.0, 0.5, 0.25, 0.0]
-linds = range(0,7)
+if Y1:
+    inds = range(0, 7)
+else:
+    edges = [13.1, 13.2, 13.4, 13.6, 13.8, 14.0, 14.2, 14.5, 15.0]#, 16.0]
+    inds = range(0, len(edges)-1)
 Nz = len(zs)
-Nl = len(linds)
+Nl = len(inds)
 
 #This is the fox sim cosmology
 h = 0.670435
@@ -78,7 +87,7 @@ def best_fits():
         #Give the bin edges in comoving units; Mpc/h
         input_params["R_bin_min"] = 0.0323*(h*(1+z))
         input_params["R_bin_max"] = 30.0*(h*(1+z))
-        for j in linds:
+        for j in inds:
             R, DS, err, flag = np.loadtxt(datapath%(z, j), unpack=True)
             flags = np.where(flag==1)[0]
             cov = np.loadtxt(covpath%(z, j))
@@ -110,7 +119,7 @@ def do_mcmc(bfmasses):
         input_params["R_bin_min"] = 0.0323*(h*(1+z))
         input_params["R_bin_max"] = 30.0*(h*(1+z))
         extras = (k, Plin, Pmm, cosmo, input_params)
-        for j in linds:
+        for j in inds:
             pos = [bfmasses[i, j] + 1e-4*np.random.randn(ndim) for nw in range(nwalkers)]
             R, DS, err, flag = np.loadtxt(datapath%(z, j), unpack=True)
             flags = np.where(flag==1)[0]
@@ -137,7 +146,7 @@ def reduce_chains():
     for i in range(len(inds)):
         index = inds[i]
         z = zs[i]
-        for j in linds:
+        for j in inds:
             chain = np.genfromtxt("txt_files/chains/chain_z%.2f_l%d.txt"%(z, j))
             masses[i, j] = np.mean(chain)
             err[i, j]  = np.std(chain)
