@@ -23,8 +23,8 @@ R = (bins[:-1]+bins[1:])/2.
 
 dohh = False
 calchh = False
-dohm = True
-calchm = True
+dohm = False
+calchm = False
 
 inds = [6,7,8,9]
 zs = [1.0, 0.5, 0.25, 0.0]
@@ -44,9 +44,9 @@ if dohh:
                 print "finding HHCF at z=%.2f m=%d"%(z,j)
                 X, Y, Z, Np, M, Rich = np.genfromtxt(halopath%(index,j,index), unpack=True)
                 result = xi(boxsize, nthreads, bins, X, Y, Z)
-                np.savetxt("txt_files/mass_txt_files/hhcf_z%.2f_m%d.txt"%(z,j), result)
+                np.savetxt("txt_files/hhcf_z%.2f_m%d.txt"%(z,j), result)
         for j in minds:
-            result = np.loadtxt("txt_files/mass_txt_files/hhcf_z%.2f_m%d.txt"%(z,j)).T
+            result = np.loadtxt("txt_files/hhcf_z%.2f_m%d.txt"%(z,j)).T
             hhcf = result[3]
             cmap = plt.get_cmap(cmaps[i])
             plt.loglog(R, hhcf, c=cmap(c[j]), label="z=%.2f m%d"%(z,j))
@@ -97,9 +97,9 @@ if dohm:
                           X2=Xr1, Y2=Yr1, Z2=Zr1)
                 hmcf = convert_3d_counts_to_cf(N_h, N_dm, N_rand, N_rand,
                                                DhDd, DhRh, DdRd, RhRd)
-                np.savetxt("txt_files/mass_txt_files/hmcf_z%.2f_m%d.txt"%(z,j),hmcf)
+                np.savetxt("txt_files/hmcf_z%.2f_m%d.txt"%(z,j),hmcf)
         for j in minds:
-            hmcf = np.loadtxt("txt_files/mass_txt_files/hmcf_z%.2f_m%d.txt"%(z,j))
+            hmcf = np.loadtxt("txt_files/hmcf_z%.2f_m%d.txt"%(z,j))
             plt.loglog(R, hmcf, label="z=%.2f m%d"%(z,j))
         plt.legend(loc=0)
         plt.xlabel(r"$R\ [{\rm Mpc/h}]$", fontsize=24)
