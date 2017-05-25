@@ -10,12 +10,12 @@ from matplotlib.ticker import MaxNLocator
 plt.rc("text", usetex=True, fontsize=24)
 plt.rc("errorbar", capsize=3)
 
-bfs  = np.loadtxt("txt_files/SV_BF_masses.txt")
-#bfs  = np.loadtxt("txt_files/mcmc_masses.txt")
-#errs = np.loadtxt("txt_files/mcmc_errs.txt")
+#bfs  = np.loadtxt("txt_files/SV_BF_masses.txt")
+bfs  = np.loadtxt("txt_files/SV_mcmc_masses.txt")
+errs = np.loadtxt("txt_files/SV_mcmc_errs.txt")
 mass = np.loadtxt("txt_files/SV_masses.txt")
 C = mass/10**bfs
-#Cerr = np.log(10) * errs * C
+Cerr = np.log(10) * errs * C
 
 zs = [1.0, 0.5, 0.25, 0.0]
 
@@ -23,14 +23,14 @@ fig, axarr = plt.subplots(4, sharex=True, sharey=True)
 for i in range(len(zs)):
     z = zs[i]
     print C[i]
-    axarr[i].plot(bfs[i], C[i], marker='o', ls='')
-    #axarr[i].errorbar(lams[i], C[i], Cerr[i], marker='o', ls='')
+    #axarr[i].plot(bfs[i], C[i], marker='o', ls='')
+    axarr[i].errorbar(bfs[i], C[i], Cerr[i], marker='o', ls='')
     axarr[i].axhline(y=1.0, c='k', ls='--', lw=1)
 
 for i in range(len(zs)):
     ylim = .32#max(axarr[i].get_ylim())-1 #% above 1
-    axarr[i].set_ylim(1-ylim, 1+ylim)
-    #axarr[i].set_ylim(1, 1.3)
+    #axarr[i].set_ylim(1-ylim, 1+ylim)
+    axarr[i].set_ylim(1, 1.5)
     axarr[i].tick_params(labelsize=16)
     axarr[i].text(60, 1.20, r"$z=%.2f$"%zs[i], fontsize=16)
     #nbins = len(axarr[i].get_yticklabels())
