@@ -17,13 +17,12 @@ Y1 = False
 
 #Paths to the data and covariance
 if Y1:
-    print "no implemented yet"
+    print "not implemented yet"
 else:
-    datapath = "/home/tmcclintock/Desktop/des_wl_work/SV_work/calibration_work/calibration_data/cal_profile_z%.2f_m%d"
-    covpath  = "/home/tmcclintock/Desktop/des_wl_work/SV_work/calibration_work/calibration_data/cal_cov_z%.2f_m%d"
+    datapath = "/home/tmcclintock/Desktop/des_wl_work/SV_work/calibration_work/calibration_data/cal_profile_z%.2f_m%d.txt"
+    covpath  = "/home/tmcclintock/Desktop/des_wl_work/SV_work/calibration_work/calibration_data/cal_cov_z%.2f_m%d.txt"
 
 #Snapshot characteristics
-inds = [6,7,8,9]
 zs = [1.0, 0.5, 0.25, 0.0]
 if Y1:
     inds = range(0, 7)
@@ -76,13 +75,12 @@ def best_fits():
     Find the best fit masses, where we will end up starting the chain.
     """
     bfmasses = np.ones((Nz,Nl))
-    for i in range(len(inds)):
-        index = inds[i]
+    for i in range(len(zs)):
         z = zs[i]
         #Get power spectra
-        k = np.loadtxt("txt_files/P_files/k.txt")
-        Plin = np.loadtxt("txt_files/P_files/Plin_z%.2f.txt"%z)
-        Pmm  = np.loadtxt("txt_files/P_files/Pnl_z%.2f.txt"%z)
+        k = np.loadtxt("../txt_files/P_files/k.txt")
+        Plin = np.loadtxt("../txt_files/P_files/Plin_z%.2f.txt"%z)
+        Pmm  = np.loadtxt("../txt_files/P_files/Pnl_z%.2f.txt"%z)
         extras = (k, Plin, Pmm, cosmo, input_params)
         #Give the bin edges in comoving units; Mpc/h
         input_params["R_bin_min"] = 0.0323*(h*(1+z))
@@ -108,13 +106,12 @@ def do_mcmc(bfmasses):
     nwalkers = 4
     ndim = 1
     nsteps = 10000
-    for i in range(len(inds)):
-        index = inds[i]
+    for i in range(len(zs)):
         z = zs[i]
         #Get power spectra
-        k = np.loadtxt("txt_files/P_files/k.txt")
-        Plin = np.loadtxt("txt_files/P_files/Plin_z%.2f.txt"%z)
-        Pmm  = np.loadtxt("txt_files/P_files/Pnl_z%.2f.txt"%z)
+        k = np.loadtxt("../txt_files/P_files/k.txt")
+        Plin = np.loadtxt("../txt_files/P_files/Plin_z%.2f.txt"%z)
+        Pmm  = np.loadtxt("../txt_files/P_files/Pnl_z%.2f.txt"%z)
         #Give the bin edges in comoving units; Mpc/h
         input_params["R_bin_min"] = 0.0323*(h*(1+z))
         input_params["R_bin_max"] = 30.0*(h*(1+z))
@@ -128,13 +125,13 @@ def do_mcmc(bfmasses):
             cov = cov[:, flags]
             icov = np.linalg.inv(cov)
             sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob, args=(R, DS, icov, flags, z, extras), threads=8)
-            print "Running chain for z=%f l%d starting at lM=%.3f"%(z, j, bfmasses[i,j])
+            print "Running chain for z=%f m%d starting at lM=%.3f"%(z, j, bfmasses[i,j])
             sampler.run_mcmc(pos, nsteps)
-            print "\tchain complete for z=%f l%d starting at lM=%.3f"%(z, j, bfmasses[i,j])
+            print "\tchain complete for z=%f m%d starting at lM=%.3f"%(z, j, bfmasses[i,j])
             chain = sampler.flatchain
             likes = sampler.flatlnprobability
-            np.savetxt("txt_files/chains/chain_z%.2f_l%d.txt"%(z, j), chain)
-            np.savetxt("txt_files/chains/likes_z%.2f_l%d.txt"%(z, j), likes)
+            np.savetxt("txt_files/chains/chain_z%.2f_m%d.txt"%(z, j), chain)
+            np.savetxt("txt_files/chains/likes_z%.2f_m%d.txt"%(z, j), likes)
     return 0
 
 def reduce_chains():
@@ -144,22 +141,21 @@ def reduce_chains():
     masses = np.ones((Nz,Nl))
     err  = np.ones_like(masses)
     for i in range(len(inds)):
-        index = inds[i]
         z = zs[i]
         for j in inds:
-            chain = np.genfromtxt("txt_files/chains/chain_z%.2f_l%d.txt"%(z, j))
+            chain = np.genfromtxt("txt_files/chains/chain_z%.2f_m%d.txt"%(z, j))
             masses[i, j] = np.mean(chain)
             err[i, j]  = np.std(chain)
-            print "lM=%.3f +- %.3f at z%.2f l%d"%(masses[i,j], err[i,j], z, j)
-    np.savetxt("txt_files/mcmc_masses.txt", masses)
-    np.savetxt("txt_files/mcmc_errs.txt", err)
+            print "lM=%.3f +- %.3f at z%.2f m%d"%(masses[i,j], err[i,j], z, j)
+    np.savetxt("txt_files/SV_mcmc_masses.txt", masses)
+    np.savetxt("txt_files/SV_mcmc_errs.txt", err)
     return
 
 if __name__ == "__main__":
     #bfmasses = best_fits()
-    #np.savetxt("txt_files/BF_masses.txt", bfmasses)
+    #np.savetxt("txt_files/SV_BF_masses.txt", bfmasses)
 
-    #bfmasses = np.loadtxt("txt_files/BF_masses.txt")
-    #do_mcmc(bfmasses)
+    bfmasses = np.loadtxt("txt_files/SV_BF_masses.txt")
+    do_mcmc(bfmasses)
 
-    reduce_chains()
+    #reduce_chains()

@@ -39,8 +39,8 @@ params = {"NR":300,"Rmin":0.01,
           "miscentering":0,"averaging":1}
 
 #masses = np.loadtxt("txt_files/BF_masses.txt")
-#masses = np.loadtxt("txt_files/mcmc_masses.txt")
-masses = np.log10(np.loadtxt("txt_files/true_masses.txt"))
+masses = np.loadtxt("txt_files/mcmc_masses.txt")
+#masses = np.log10(np.loadtxt("txt_files/true_masses.txt"))
 
 for i in range(len(inds)):
     cmap = plt.get_cmap(cmaps[i])
