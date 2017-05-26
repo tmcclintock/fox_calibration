@@ -25,18 +25,18 @@ for i in range(len(zs)):
     print C[i]
     #axarr[i].plot(bfs[i], C[i], marker='o', ls='')
     axarr[i].errorbar(bfs[i], C[i], Cerr[i], marker='o', ls='')
-    axarr[i].axhline(y=1.0, c='k', ls='--', lw=1)
+    axarr[i].axhline(y=1.05, c='k', ls='--', lw=1)
 
 for i in range(len(zs)):
     ylim = .32#max(axarr[i].get_ylim())-1 #% above 1
     #axarr[i].set_ylim(1-ylim, 1+ylim)
-    axarr[i].set_ylim(1, 1.5)
+    axarr[i].set_ylim(1, 1.3)
     axarr[i].tick_params(labelsize=16)
     axarr[i].text(60, 1.20, r"$z=%.2f$"%zs[i], fontsize=16)
     #nbins = len(axarr[i].get_yticklabels())
     #axarr[i].yaxis.set_major_locator(MaxNLocator(nbins=nbins, prune='upper'))
 
-plt.subplots_adjust(hspace=0.1, bottom=0.2, left=0.2)
+plt.subplots_adjust(hspace=0.5, bottom=0.2, left=0.2)
 fig.add_subplot(111, frameon=False)
 plt.tick_params(labelcolor='none', top='off', bottom='off', left='off', right='off')
 plt.xlabel(r"$M_{\rm obs}\ [{\rm M_\odot/h}]$")
