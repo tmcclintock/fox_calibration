@@ -147,8 +147,8 @@ def reduce_chains():
     return
 
 if __name__ == "__main__":
-    #bfmasses = best_fits()
-    #np.savetxt("txt_files/BF_masses.txt", bfmasses)
+    bfmasses = best_fits()
+    np.savetxt("txt_files/BF_masses.txt", bfmasses)
 
     #bfmasses = np.loadtxt("txt_files/BF_masses.txt")
     #do_mcmc(bfmasses)

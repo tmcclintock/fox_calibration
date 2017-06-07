@@ -8,7 +8,7 @@ import numpy as np
 import os, sys, emcee
 import scipy.optimize as op
 import matplotlib.pyplot as plt
-sys.path.insert(0, "../../Delta-Sigma/src/wrapper/")
+sys.path.insert(0, "../../../Delta-Sigma/src/wrapper/")
 import py_Delta_Sigma as pyDS
 from colossus.halo import concentration as conc
 from colossus.cosmology import cosmology as col_cosmology
@@ -22,15 +22,37 @@ else:
     datapath = "/home/tmcclintock/Desktop/des_wl_work/SV_work/calibration_work/calibration_data/cal_profile_z%.2f_m%d.txt"
     covpath  = "/home/tmcclintock/Desktop/des_wl_work/SV_work/calibration_work/calibration_data/cal_cov_z%.2f_m%d.txt"
 
+true_mass = np.loadtxt("txt_files/SV_masses.txt")#True masses
+true_lM = np.log10(true_mass)
+
+def get_richind():
+    """
+    Get the index of the covariance matrix that we will use for each mass bin.
+    They don't line up exactly, like how the Y1 bins are designed.
+    """
+    lam_edges = [5, 10, 14, 20, 30, 45, 60, np.inf]
+
+    lM = np.log10(true_mass)
+    rich = 30.*10**((lM-14.37)/1.12) #approximate richnesses
+    inds = np.zeros_like(rich)
+    for i in range(len(inds)):
+        for j in range(len(inds[i])):
+            for k in range(len(lam_edges)-1):
+                if rich[i,j] < lam_edges[k+1]:
+                    inds[i,j] = k
+                    break
+    return inds
+
 #Snapshot characteristics
 zs = [1.0, 0.5, 0.25, 0.0]
 if Y1:
     inds = range(0, 7)
 else:
     edges = [13.1, 13.2, 13.4, 13.6, 13.8, 14.0, 14.2, 14.5, 15.0]#, 16.0]
-    inds = range(0, len(edges)-1)
+    inds = get_richind()
+    print inds
 Nz = len(zs)
-Nl = len(inds)
+Nl = len(inds[0])
 
 #This is the fox sim cosmology
 h = 0.670435
@@ -43,7 +65,8 @@ col_cosmology.setCosmology('fiducial_cosmology')
 input_params = {"NR":300,"Rmin":0.01,
                 "Rmax":200.0,"Nbins":15,"delta":200,
                 "Rmis":0.0, "fmis":0.0,
-                "miscentering":0,"averaging":1}
+                "miscentering":0,"averaging":1,
+                "single_miscentering":0}
 
 #Write the likelihoods
 def lnprior(params):
@@ -85,15 +108,17 @@ def best_fits():
         #Give the bin edges in comoving units; Mpc/h
         input_params["R_bin_min"] = 0.0323*(h*(1+z))
         input_params["R_bin_max"] = 30.0*(h*(1+z))
-        for j in inds:
+        for j in range(len(inds[0])):
+            covindex = inds[i,j]
+            #Data is in units of Msun/pc^2 physical
             R, DS, err, flag = np.loadtxt(datapath%(z, j), unpack=True)
             flags = np.where(flag==1)[0]
-            cov = np.loadtxt(covpath%(z, j))
+            cov = np.loadtxt(covpath%(z, covindex))
             cov = cov[flags]
             cov = cov[:, flags]
             icov = np.linalg.inv(cov)            
             nll = lambda *args: -lnprob(*args)
-            result = op.minimize(nll, x0=13.2,
+            result = op.minimize(nll, x0=true_lM[i,j],
                                  args=(R, DS, icov, flags, z, extras))
             print result
             bfmasses[i, j] = result['x'][0]
@@ -105,7 +130,7 @@ def do_mcmc(bfmasses):
     """
     nwalkers = 4
     ndim = 1
-    nsteps = 10000
+    nsteps = 1000
     for i in range(len(zs)):
         z = zs[i]
         #Get power spectra
@@ -116,11 +141,12 @@ def do_mcmc(bfmasses):
         input_params["R_bin_min"] = 0.0323*(h*(1+z))
         input_params["R_bin_max"] = 30.0*(h*(1+z))
         extras = (k, Plin, Pmm, cosmo, input_params)
-        for j in inds:
+        for j in range(len(inds[0])):
+            covindex = inds[i,j]
             pos = [bfmasses[i, j] + 1e-4*np.random.randn(ndim) for nw in range(nwalkers)]
             R, DS, err, flag = np.loadtxt(datapath%(z, j), unpack=True)
             flags = np.where(flag==1)[0]
-            cov = np.loadtxt(covpath%(z, j))
+            cov = np.loadtxt(covpath%(z, covindex))
             cov = cov[flags]
             cov = cov[:, flags]
             icov = np.linalg.inv(cov)
@@ -155,7 +181,7 @@ if __name__ == "__main__":
     #bfmasses = best_fits()
     #np.savetxt("txt_files/SV_BF_masses.txt", bfmasses)
 
-    #bfmasses = np.loadtxt("txt_files/SV_BF_masses.txt")
-    #do_mcmc(bfmasses)
+    bfmasses = np.loadtxt("txt_files/SV_BF_masses.txt")
+    do_mcmc(bfmasses)
 
-    reduce_chains()
+    #reduce_chains()
