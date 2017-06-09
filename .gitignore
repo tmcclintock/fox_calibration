@@ -1,5 +1,6 @@
 old_files/SV_version/txt_files/chains/*.txt
-
+old_files/SV_version/txt_files/chains/likes*.txt
+old_files/txt_files/chains/*
 
 txt_files/chains/*
 figures

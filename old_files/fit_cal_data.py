@@ -8,7 +8,7 @@ import numpy as np
 import os, sys, emcee
 import scipy.optimize as op
 import matplotlib.pyplot as plt
-sys.path.insert(0, "../Delta-Sigma/src/wrapper/")
+sys.path.insert(0, "../../Delta-Sigma/src/wrapper/")
 import py_Delta_Sigma as pyDS
 from colossus.halo import concentration as conc
 from colossus.cosmology import cosmology as col_cosmology
@@ -129,7 +129,7 @@ def do_mcmc(bfmasses):
     return 0
 
 def reduce_chains():
-    nsteps = 100
+    nsteps = 1000
     nburn  = nsteps/2
     nwalkers = 4
     masses = np.ones((Nz,Nl))
@@ -147,8 +147,8 @@ def reduce_chains():
     return
 
 if __name__ == "__main__":
-    bfmasses = best_fits()
-    np.savetxt("txt_files/BF_masses.txt", bfmasses)
+    #bfmasses = best_fits()
+    #np.savetxt("txt_files/BF_masses.txt", bfmasses)
 
     #bfmasses = np.loadtxt("txt_files/BF_masses.txt")
     #do_mcmc(bfmasses)
