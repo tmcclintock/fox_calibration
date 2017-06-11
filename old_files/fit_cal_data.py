@@ -14,6 +14,11 @@ from colossus.halo import concentration as conc
 from colossus.cosmology import cosmology as col_cosmology
 
 #Paths to the data and covariance
+#CHANGE THESE PATHS TO LOCAL PATHS SO THAT I CAN RUN ON MY LAPTOP
+#Note: these are the only things that I need to bring here
+#in order to make the last of the plots that I need.
+#I also need to import SV covariance matrices so that I can
+#re-do that
 datapath = "/home/tmcclintock/Desktop/des_wl_work/Y1_work/blinded_data/calibration_data/cal_profile_z%.2f_l%d.txt"
 covpath = "/home/tmcclintock/Desktop/des_wl_work/Y1_work/blinded_data/calibration_data/cal_cov_z%.2f_l%d.txt"
 
