@@ -2,6 +2,9 @@
 This is a file that combines all the small scripts I used earlier.
 This is being written so that I can use general paths to the catalogs of 
 interest isntead of hard-coding in paths to certain catalogs.
+
+Note: the 'richness calibration' is in old_files/ and the 'mass calibration'
+is in old_files/SV_version.
 """
 import os, sys
 import numpy as np
