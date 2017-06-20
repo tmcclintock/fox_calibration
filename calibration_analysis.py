@@ -8,10 +8,8 @@ is in old_files/SV_version.
 """
 import os, sys
 import numpy as np
-import pygadgetreader as pgr
-from Corrfunc.theory.xi import xi
-from Corrfunc.theory.DD import DD
-from Corrfunc.utils import convert_3d_counts_to_cf
+sys.path.insert(0, "./src/")
+from CF_functions import *
 
 inds = [6,7,8,9]
 zs = [1.0, 0.5, 0.25, 0.0]
@@ -25,11 +23,7 @@ lM_edges = [13.1, 13.2, 13.4, 13.6, 13.8, 14.0, 14.2, 14.5, 15.0]#, 16.0]
 
 dmpath = "/calvin1/tmcclintock/down_sampled_snapshots/snapdir_%03d/snapshot_%03d_z%s_down1000"
 
-boxsize = 1050.0
-nthreads = 8
-nbins = 50
-bins = np.logspace(np.log10(0.01), np.log10(150.0), nbins+1)
-
+"""
 def calc_hhcf(pscatter, domass = False):
     print "Calculating hhcf for pscatter=%d"%pscatter
     os.system("mkdir -p txt_files/xihh_ps%d"%pscatter)
@@ -75,8 +69,9 @@ def calc_hmcf(pscatter, domass = False):
             continue
         continue
     return
+"""
 
 if __name__ == "__main__":
     pscatter = 25
     #calc_hhcf(pscatter)
-    calc_hmcf(pscatter)
+    #calc_hmcf(pscatter)
