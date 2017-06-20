@@ -76,7 +76,7 @@ def calc_DdRd_and_RR(dm_path, N_rand=None, M=1.5, config=config_default):
     return [RR, DdRd, [Xd, Yd, Zd], [X1, Y1, Z1]]
 
 def calc_hmcf(halo_path, RR, DdRd, Dd, Rh, save_path, config=config_default):
-    """Calculate the halo-halo correlation function
+    """Calculate the halo-matter correlation function
     Note: assumes the halo catalog has the format X,Y,Z,N,M,Richness.
 
     Args:
@@ -85,6 +85,10 @@ def calc_hmcf(halo_path, RR, DdRd, Dd, Rh, save_path, config=config_default):
         save_path (string): Path to save the output
         config (dictionary): Configuration of the Corrfunc run. Default is
         config_default
+
+    Returns:
+        R (numpy.array): Radii of the correlation function
+        hmcf (numpy.array): Halo-matter correlation function.
     """
     boxsize  = config["boxsize"]
     nthreads = config["nthreads"]
@@ -99,4 +103,4 @@ def calc_hmcf(halo_path, RR, DdRd, Dd, Rh, save_path, config=config_default):
     DhRh = DD(0, nthreads, bins, Xh, Yh, Zh, X2=X1, Y2=Y1, Z2=Z1)
     hmcf = convert_3d_counts_to_cf(N_h, N_dm, N_rand, N_rand, DhDd, DhRh, DdRd, RR)
     np.savetxt(save_path, hmcf)
-    return
+    return [(bins[:-1]+bins[1:])/2., np.array(hmcf)]

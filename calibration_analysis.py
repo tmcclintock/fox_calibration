@@ -29,6 +29,15 @@ if __name__ == "__main__":
     print "HHCF done"
     RR, DdRd, Dd, Rh = calc_DdRd_and_RR(dmpath%(6,6,"1.0"))
     print "DdRd and RR done"
-    calc_hmcf(lpath%(pscatter,6,pscatter,0,6), RR, DdRd, Dd, Rh, "test.txt")
+    R,xihm = calc_hmcf(lpath%(pscatter,6,pscatter,0,6), RR, DdRd, Dd, Rh, "test.txt")
     print "All done"
 
+    import matplotlib.pyplot as plt
+    plt.loglog(R, xihm)
+    plt.show()
+
+    #Now with the known mean masses, call Build_Delta_Sigma
+    #DS = calc_DS(R, xihm, Mass, savepath)
+
+    #Now pair it up with a covariance matrix and output the correct files
+    #create_data_vector(DS, covpath)
