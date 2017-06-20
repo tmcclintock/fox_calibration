@@ -16,8 +16,7 @@ config_default = {
     "boxsize": 1050.0,
     "nthreads": 8,
     "nbins": 50}
-config_default["bins"] = np.logspace(np.log10(0.01), np.log10(150.0), nbins+1)
-
+config_default["bins"] = np.logspace(np.log10(0.01), np.log10(150.0), config_default["nbins"]+1)
 
 def calc_hhcf(halo_path, save_path=None, config=config_default):
     """Calculate the halo-halo correlation function
@@ -58,7 +57,9 @@ def calc_DdRd_and_RR(dm_path, N_rand=None, M=1.5, config=config_default):
     boxsize  = config["boxsize"]
     nthreads = config["nthreads"]
     bins     = config["bins"]
-    Xd, Yd, Zd = pgr.readsnap(dmpath%(i, i, zstring), 'pos', 'dm').T
+    print "Here"
+    Xd, Yd, Zd = pgr.readsnap(dm_path, 'pos', 'dm').T
+    print "here2"
     Xd = Xd.astype('float64')
     Yd = Yd.astype('float64')
     Zd = Zd.astype('float64')
@@ -89,13 +90,13 @@ def calc_hmcf(halo_path, RR, DdRd, Dd, Rh, save_path, config=config_default):
     nthreads = config["nthreads"]
     bins     = config["bins"]
     Xd, Yd, Zd = Dd
-    X1, Y1, Z1 = Rd
-    X, Y, Z, Np, M, Rich = np.genfromtxt(halo_path, unpack=True)
-    N_h    = len(X)
+    X1, Y1, Z1 = Rh
+    Xh, Yh, Zh, Np, M, Rich = np.genfromtxt(halo_path, unpack=True)
+    N_h    = len(Xh)
     N_dm   = len(Xd)
     N_rand = len(X1)
     DhDd = DD(0, nthreads, bins, X1=Xh, Y1=Yh, Z1=Zh, X2=Xd, Y2=Yd, Z2=Zd)
-    DhRh = DD(0, nthreads, bins, Xh, Yh, Zh, X2=Xr1, Y2=Yr1, Z2=Zr1)
+    DhRh = DD(0, nthreads, bins, Xh, Yh, Zh, X2=X1, Y2=Y1, Z2=Z1)
     hmcf = convert_3d_counts_to_cf(N_h, N_dm, N_rand, N_rand, DhDd, DhRh, DdRd, RR)
-    np.savetxt(savepath, hmcf)
+    np.savetxt(save_path, hmcf)
     return
