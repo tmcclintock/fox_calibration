@@ -57,9 +57,7 @@ def calc_DdRd_and_RR(dm_path, N_rand=None, M=1.5, config=config_default):
     boxsize  = config["boxsize"]
     nthreads = config["nthreads"]
     bins     = config["bins"]
-    print "Here"
     Xd, Yd, Zd = pgr.readsnap(dm_path, 'pos', 'dm').T
-    print "here2"
     Xd = Xd.astype('float64')
     Yd = Yd.astype('float64')
     Zd = Zd.astype('float64')
@@ -75,7 +73,7 @@ def calc_DdRd_and_RR(dm_path, N_rand=None, M=1.5, config=config_default):
     DdRd = DD(0, nthreads, bins, Xd, Yd, Zd, X2=X2, Y2=Y2, Z2=Z2)
     return [RR, DdRd, [Xd, Yd, Zd], [X1, Y1, Z1]]
 
-def calc_hmcf(halo_path, RR, DdRd, Dd, Rh, save_path, config=config_default):
+def calc_hmcf(halo_path, RR, DdRd, Dd, Rh, savepath=None, config=config_default):
     """Calculate the halo-matter correlation function
     Note: assumes the halo catalog has the format X,Y,Z,N,M,Richness.
 
@@ -102,5 +100,8 @@ def calc_hmcf(halo_path, RR, DdRd, Dd, Rh, save_path, config=config_default):
     DhDd = DD(0, nthreads, bins, X1=Xh, Y1=Yh, Z1=Zh, X2=Xd, Y2=Yd, Z2=Zd)
     DhRh = DD(0, nthreads, bins, Xh, Yh, Zh, X2=X1, Y2=Y1, Z2=Z1)
     hmcf = convert_3d_counts_to_cf(N_h, N_dm, N_rand, N_rand, DhDd, DhRh, DdRd, RR)
-    np.savetxt(save_path, hmcf)
-    return [(bins[:-1]+bins[1:])/2., np.array(hmcf)]
+    R = (bins[:-1]+bins[1:])/2.
+    if savepath:
+        out = np.array([R, hmcf])
+        np.savetxt(savepath, out)
+    return [R, np.array(hmcf)]
