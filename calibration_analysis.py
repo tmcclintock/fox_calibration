@@ -7,6 +7,7 @@ Note: the 'richness calibration' is in old_files/ and the 'mass calibration'
 is in old_files/SV_version.
 """
 import os, sys
+import matplotlib.pyplot as plt
 import numpy as np
 sys.path.insert(0, "./src/")
 from CF_functions import *
@@ -33,8 +34,6 @@ covdatabase     = "/calvin1/tmcclintock/DES_Y1_data/calibration_data/cov_ps%d_z%
 covinds = [2, 2, 2, 1] #Covariance matrices to use for each snap
 
 if __name__ == "__main__":
-    import matplotlib.pyplot as plt
-
     """
     for ps in [15, 25, 35]:
         for i,ind in zip(range(len(inds)), inds):
