@@ -23,7 +23,7 @@ lam_edges = [5, 10, 14, 20, 30, 45, 60, np.inf]
 lM_edges = [13.1, 13.2, 13.4, 13.6, 13.8, 14.0, 14.2, 14.5, 15.0]#, 16.0]
 mmeans = np.genfromtxt("L_ps25_masses.txt")
 
-dmpath = "/calvin1/tmcclintock/down_sampled_snapshots/snapdir_%03d/snapshot_%03d_z%s_down10000"
+dmpath_base = "/calvin1/tmcclintock/down_sampled_snapshots/snapdir_%03d/snapshot_%03d_z%s_down10000"
 
 if __name__ == "__main__":
     import matplotlib.pyplot as plt
@@ -41,8 +41,14 @@ if __name__ == "__main__":
         continue
     print "HHCFs created"
     """
-    #RR, DdRd, Dd, Rh = calc_DdRd_and_RR(dmpath%(6,6,"1.0"))
-    print "DdRd and RR used in HMCF done"
+    
+    for i,ind in zip(range(len(inds)), inds):
+        z = zs[i]
+        zstring = zstrings[i]
+        dmpath = dmpath_base%(ind, ind, zstring)
+        RR, DdRd, Dd, Rh = calc_DdRd_and_RR(dmpath)
+        print "DdRd and RR at z%d done"%ind
+    sys.exit()
     #R,xihm = calc_hmcf(lpath%(pscatter,6,pscatter,3,6), RR, DdRd, Dd, Rh, "test.txt")
     R, xihm = np.loadtxt("test.txt")
     inds = np.invert(np.isnan(xihm))
