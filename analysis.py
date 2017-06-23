@@ -6,3 +6,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 import emcee
 import scipy.optimize as op
+
+if __name__ == "__main__":
+    print "not implemented"
