@@ -27,9 +27,20 @@ dmpath = "/calvin1/tmcclintock/down_sampled_snapshots/snapdir_%03d/snapshot_%03d
 
 if __name__ == "__main__":
     import matplotlib.pyplot as plt
-    pscatter = 25
-    calc_hhcf(lpath%(pscatter,6,pscatter,3,6))
-    #print "HHCF created"
+
+    """
+    for ps in [15, 25, 35]:
+        for i,ind in zip(range(len(inds)), inds):
+            z = zs[i]
+            for j in linds:
+                halos = lpath%(ps, ind, ps, j, ind)
+                calc_hhcf(halos, "output_files/hhcf/hhcf_ps%d_z%d_l%d.txt"%(ps,i,j))
+                print "HHCF ps%d z%d, l%d complete"%(ps,i,j)
+                continue
+            continue
+        continue
+    print "HHCFs created"
+    """
     #RR, DdRd, Dd, Rh = calc_DdRd_and_RR(dmpath%(6,6,"1.0"))
     print "DdRd and RR used in HMCF done"
     #R,xihm = calc_hmcf(lpath%(pscatter,6,pscatter,3,6), RR, DdRd, Dd, Rh, "test.txt")
