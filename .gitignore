@@ -1,4 +1,6 @@
 output_files/hhcf
+output_files/hmcf
+output_files/ds
 
 old_files/SV_version/txt_files/chains/*.txt
 old_files/SV_version/txt_files/chains/likes*.txt
