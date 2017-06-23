@@ -34,13 +34,10 @@ def calc_DS(R, xi_hm, Mass, redshift, savepath=None, cosmo=None):
     results = BDS.build_Delta_Sigma(R, xi_hm, cosmo, params)
     DS = results['delta_sigma']
     if savepath:
-        out = np.array([R,DS]).T
-        np.savetxt(savepath, out)
+        np.savetxt(savepath, np.array([R,DS]).T)
     return [R, DS]
 
 def create_data_vector(Rinit, DSinit, C, z, save, Csave, cosmo=None):
-    if 1 == 1 : #developing still
-        return
     if not cosmo:
         #This is the fox sim cosmology
         cosmo = {"h":0.670435,"om":0.31834,"ok":0.0}
@@ -50,8 +47,8 @@ def create_data_vector(Rinit, DSinit, C, z, save, Csave, cosmo=None):
     R = Rinit/(h*(1+z))
     DS = DSinit*h*(1+z)**2
     #Spline to get the curve at R_data
-    sp = IUS(R,DS)
+    spl = IUS(R,DS)
     dsout = spl(R_data)
-    np.savetxt(save, np.array(R,dsout))
+    np.savetxt(save, np.array([R_data,dsout]).T)
     np.savetxt(Csave, C)
     return

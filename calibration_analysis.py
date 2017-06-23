@@ -16,7 +16,8 @@ inds = [6,7,8,9]
 zs = [1.0, 0.5, 0.25, 0.0]
 zstrings = ["1.0", "0.5", "0.25", "0.0"]
 linds = range(0,7)
-halobase="/calvin1/tmcclintock/fox_data/richness_halos/rich_snapdir_ps%d_%03d/"
+halobase= "/calvin1/tmcclintock/fox_data/richness_halos/rich_snapdir_ps%d_%03d/"
+covbase = "/calvin1/tmcclintock/DES_Y1_data/tamas_v1/full-mcal-urem_y1subtr_l%d_z%d_dst_cov.dat"
 mpath = halobase+"/mass_halos_ps%d_m%d_%03d.txt" #Path to mass split halos
 lpath = halobase+"/richness_halos_ps%d_l%d_%03d.txt" #Path to lam split halos
 lam_edges = [5, 10, 14, 20, 30, 45, 60, np.inf]
@@ -27,6 +28,9 @@ dmpath_base = "/calvin1/tmcclintock/down_sampled_snapshots/snapdir_%03d/snapshot
 hhcf_savepath = "output_files/hhcf/hhcf_ps%d_z%d_l%d.txt"
 hmcf_savepath = "output_files/hmcf/hmcf_ps%d_z%d_l%d.txt"
 ds_savepath   = "output_files/ds/ds_ps%d_z%d_l%d.txt"
+DSdatabase      = "/calvin1/tmcclintock/DES_Y1_data/calibration_data/ds_ps%d_z%d_l%d.txt"
+covdatabase     = "/calvin1/tmcclintock/DES_Y1_data/calibration_data/cov_ps%d_z%d_l%d.txt"
+covinds = [2, 2, 2, 1] #Covariance matrices to use for each snap
 
 if __name__ == "__main__":
     import matplotlib.pyplot as plt
@@ -82,7 +86,19 @@ if __name__ == "__main__":
     print "DeltaSigmas created"
     """
 
-    #Now pair it up with a covariance matrix and output the correct files
-    #Read in the associated covariance matrix
-    create_data_vector(R, DS, cov, z, save, Csave)
-    print "Data vector created"
+    """
+    for ps in [15, 25, 35]:
+        for i,ind in zip(range(len(inds)), inds):
+            z = zs[i]
+            for j in linds:
+                R, DS = np.loadtxt(ds_savepath%(ps,i,j)).T
+                cov = np.genfromtxt(covbase%(j, covinds[i]))
+                DSsave  = DSdatabase%(ps,i,j)
+                covsave = covdatabase%(ps,i,j)
+                create_data_vector(R, DS, cov, z, DSsave, covsave)
+                print "Data vector created for ps%d z%d, l%d"%(ps, ind, j)
+                continue  #end j
+            continue #end i,ind
+        continue #end ps
+    print "Data vectors created"
+    """
