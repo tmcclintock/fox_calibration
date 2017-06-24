@@ -30,9 +30,10 @@ k = np.loadtxt("txt_files/P_files/k.txt")
 
 if __name__ == "__main__":
 
-    for ps in [15]:#, 25, 35]:
+    for ps in [15, 25, 35]:
         true_lM = np.log10(np.genfromtxt("L_ps%d_masses.txt"%ps))
         bf_masses = np.zeros_like(true_lM)
+        cal = np.zeros_like(bf_masses)
         for i,ind in zip(range(len(inds)), inds):
             z = zs[i]
             Plin = np.loadtxt("txt_files/P_files/Plin_z%.2f.txt"%z)
@@ -45,20 +46,20 @@ if __name__ == "__main__":
                 covpath = covdatabase%(ps, i, j)
                 R, DS = np.loadtxt(DSpath).T
                 cov = np.loadtxt(covpath)
-                inds = R>0.2 #Mpc
-                cov = cov[inds]
-                cov = cov[:,inds]
+                cut = R>0.2 #Mpc
+                cov = cov[cut]
+                cov = cov[:,cut]
                 icov = np.linalg.inv(cov)
-                DS = DS[inds]
-                R = R[inds]
-                plt.loglog(R,DS)
+                DS = DS[cut]
+                R = R[cut]
                 nll = lambda *args: -lnprob(*args)
-                result = op.minimize(nll, x0=true_lM[i,j],args=(R, DS, icov, inds, z, extras))
+                result = op.minimize(nll, x0=true_lM[i,j],args=(R, DS, icov, cut, z, extras))
                 print result
                 bf_masses[i,j] = result['x']
+                cal[i,j] = 10**true_lM[i,j]/10**bf_masses[i,j]
                 print "Best fit done for ps%d z%d, l%d"%(ps, ind, j)
                 continue #end j
-            plt.show()
-            np.savetxt("output_files/mass_fits/bf_masses_ps%d.txt", bf_masses)
             continue #end i,ind
+        np.savetxt("output_files/mass_fits/bf_masses_ps%d.txt"%ps, bf_masses)
+        np.savetxt("output_files/mass_fits/bf_cal_ps%d.txt"%ps, cal)
         continue #end ps
