@@ -29,7 +29,9 @@ k = np.loadtxt("txt_files/P_files/k.txt")
 if __name__ == "__main__":
     print "not implemented"
 
-    for ps in [15, 25, 35]:
+    for ps in [15]:#, 25, 35]:
+        mean_masses = np.genfromtxt("L_ps%d_masses.txt"%ps)
+        bf_masses = np.zeros_like(mean_masses)
         for i,ind in zip(range(len(inds)), inds):
             z = zs[i]
             Plin = np.loadtxt("txt_files/P_files/Plin_z%.2f.txt"%z)
@@ -38,5 +40,23 @@ if __name__ == "__main__":
             for j in linds:
                 DSpath  = DSdatabase%(ps, i, j)
                 covpath = covdatabase%(ps, i, j)
+                """
+                R, DS = np.loadtxt(DSpath)
+                cov = np.loadtxt(covpath)
+                inds = R<0.2 #Mpc
+                cov = cov[inds]
+                cov = cov[:,inds]
+                icov = np.linalg.inv(cov)
+                DS = DS[inds]
+                R = R[inds]
+                """
+                """
+                nll = lambda *args: -lnprob(*args)
+                result = op.minimize(nll, x0=true_lM[i,j],args=(R, DS, icov, inds, z, extras))
+                bf_masses[i,j] = result['x']
+                """
                 print "Best fit done for ps%d z%d, l%d"%(ps, ind, j)
-                
+                continue #end j
+            #np.savetxt("output_files/mass_fits/bf_masses_ps%d.txt", bf_masses)
+            continue #end i,ind
+        continue #end ps
