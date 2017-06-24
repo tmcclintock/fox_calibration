@@ -33,8 +33,8 @@ def lnlike(params, R, ds, icov, flags, z, extras):
     inparams["concentration"] = conc.concentration(10**lM, '200m', z, model='diemer15')
     result = pyDS.calc_Delta_Sigma(k, Plin, k, Pnl, cosmo, inparams)
     model = result['ave_delta_sigma']*h*(1.+z)**2 #Msun/pc^2 physical
+    model = model[flags]
     X = ds - model
-    X = X[flags]
     return -0.5*np.dot(X, np.dot(icov, X))
 
 def lnprob(params, R, ds, icov, flags, z, extras):
