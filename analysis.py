@@ -12,7 +12,7 @@ import scipy.optimize as op
 #MCMC parameters
 nwalkers = 4
 ndim = 1
-nsteps = 10000
+nsteps = 5000
 nburn = nsteps/4
 
 inds = [6,7,8,9]
@@ -21,8 +21,8 @@ zstrings = ["1.0", "0.5", "0.25", "0.0"]
 linds = range(0,7)
 DSdatabase      = "/calvin1/tmcclintock/DES_Y1_data/calibration_data/ds_ps%d_z%d_l%d.txt"
 covdatabase     = "/calvin1/tmcclintock/DES_Y1_data/calibration_data/cov_ps%d_z%d_l%d.txt"
-DSdatabase      = "/home/tom/Desktop/DES_data/calibration_data/ds_ps%d_z%d_l%d.txt"
-covdatabase     = "/home/tom/Desktop/DES_data/calibration_data/cov_ps%d_z%d_l%d.txt"
+#DSdatabase      = "/home/tom/Desktop/DES_data/calibration_data/ds_ps%d_z%d_l%d.txt"
+#covdatabase     = "/home/tom/Desktop/DES_data/calibration_data/cov_ps%d_z%d_l%d.txt"
 
 #Fox cosmology
 h = 0.670435
@@ -104,13 +104,13 @@ if __name__ == "__main__":
                 print "\tchain complete for z=%f l%d starting at lM=%.3f"%(z, j, bf_masses[i,j])
                 fullchain = sampler.flatchain
                 likes = sampler.flatlnprobability
-                np.savetxt("output_files/chains/chain_ps%d_z%.2f_l%d.txt"%(z, j), fullchain)
-                np.savetxt("output_files/chains/likes_ps%d_z%.2f_l%d.txt"%(z, j), likes)
+                np.savetxt("output_files/chains/chain_ps%d_z%.2f_l%d.txt"%(ps, z, j), fullchain)
+                np.savetxt("output_files/chains/likes_ps%d_z%.2f_l%d.txt"%(ps, z, j), likes)
                 chain = fullchain[nburn*nwalkers:]
                 mcmc_masses[i,j] = np.mean(chain)
                 mcmc_stds[i,j] = np.std(chain)
                 cal[i,j] = 10**true_lM[i,j]/10**mcmc_masses[i,j]
-                cellerr[i,j] = np.log(10) * mcmc_stds[i,j] * cal[i,j]
+                calerr[i,j] = np.log(10) * mcmc_stds[i,j] * cal[i,j]
                 print "Best fit done for ps%d z%d, l%d"%(ps, ind, j)
                 continue #end j
             continue #end i,ind
