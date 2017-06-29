@@ -66,8 +66,8 @@ def do_best_fit():
                 print "Bf is ",result['x'], cal[i,j]
                 continue #end j
             continue #end i,ind
-        #np.savetxt("output_files/mass_fits/bf_masses_ps%d.txt"%ps, bf_masses)
-        #np.savetxt("output_files/mass_fits/bf_cal_ps%d.txt"%ps, cal)
+        np.savetxt("output_files/mass_fits/bf_masses_ps%d.txt"%ps, bf_masses)
+        np.savetxt("output_files/mass_fits/bf_cal_ps%d.txt"%ps, cal)
         continue #end ps
 
 def do_mcmc():
@@ -120,4 +120,4 @@ def do_mcmc():
 
 if __name__ == "__main__":
     do_best_fit()
-    #do_mcmc()
+    do_mcmc()
