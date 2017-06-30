@@ -24,7 +24,7 @@ lpath = halobase+"/richness_halos_ps%d_l%d_%03d.txt" #Path to lam split halos
 lam_edges = [5, 10, 14, 20, 30, 45, 60, np.inf]
 lM_edges = [13.1, 13.2, 13.4, 13.6, 13.8, 14.0, 14.2, 14.5, 15.0]#, 16.0]
 
-dmpath_base = "/calvin1/tmcclintock/down_sampled_snapshots/snapdir_%03d/snapshot_%03d_z%s_down10000"
+dmpath_base = "/calvin1/tmcclintock/down_sampled_snapshots/snapdir_%03d/snapshot_%03d_z%s_down1000"
 
 hhcf_savepath = "output_files/hhcf/hhcf_ps%d_z%d_l%d.txt"
 hmcf_savepath = "output_files/hmcf/hmcf_ps%d_z%d_l%d.txt"
@@ -48,14 +48,13 @@ if __name__ == "__main__":
     print "HHCFs created"
     """
     
-    """
     for i,ind in zip(range(len(inds)), inds):
         z = zs[i]
         zstring = zstrings[i]
         dmpath = dmpath_base%(ind, ind, zstring)
         RR, DdRd, Dd, Rh = calc_DdRd_and_RR(dmpath)
         print "DdRd and RR at z%d done"%ind
-        for ps in [15, 25, 35]:
+        for ps in [0, 15, 25, 35, 45]:
             for j in linds:
                 halos = lpath%(ps, ind, ps, j, ind)
                 R, xihm = calc_hmcf(halos, RR, DdRd, Dd, Rh, hmcf_savepath%(ps,i,j))
@@ -64,7 +63,6 @@ if __name__ == "__main__":
             continue #end ps
         continue #end i,ind
     print "HMCFs created"
-    """
 
     """
     for ps in [15, 25, 35]:
