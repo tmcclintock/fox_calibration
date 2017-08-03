@@ -24,7 +24,7 @@ lpath = halobase+"/richness_halos_ps%d_l%d_%03d.txt" #Path to lam split halos
 lam_edges = [5, 10, 14, 20, 30, 45, 60, np.inf]
 lM_edges = [13.1, 13.2, 13.4, 13.6, 13.8, 14.0, 14.2, 14.5, 15.0]#, 16.0]
 
-dmpath_base = "/calvin1/tmcclintock/down_sampled_snapshots/snapdir_%03d/snapshot_%03d_z%s_down1000"
+dmpath_base = "/calvin1/tmcclintock/down_sampled_snapshots/snapdir_%03d/snapshot_%03d_z%s_down100"
 
 hhcf_savepath = "output_files/hhcf/hhcf_ps%d_z%d_l%d.txt"
 hmcf_savepath = "output_files/hmcf/hmcf_ps%d_z%d_l%d.txt"
