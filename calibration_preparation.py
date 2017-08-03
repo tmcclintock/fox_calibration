@@ -48,6 +48,7 @@ if __name__ == "__main__":
     print "HHCFs created"
     """
     
+    """
     for i,ind in zip(range(len(inds)), inds):
         z = zs[i]
         zstring = zstrings[i]
@@ -63,6 +64,7 @@ if __name__ == "__main__":
             continue #end ps
         continue #end i,ind
     print "HMCFs created"
+    """
 
     """
     for ps in [15, 25, 35]:
@@ -83,7 +85,6 @@ if __name__ == "__main__":
     print "DeltaSigmas created"
     """
 
-    """
     for ps in [15, 25, 35]:
         for i,ind in zip(range(len(inds)), inds):
             z = zs[i]
@@ -98,4 +99,3 @@ if __name__ == "__main__":
             continue #end i,ind
         continue #end ps
     print "Data vectors created"
-    """

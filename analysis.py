@@ -12,7 +12,7 @@ import scipy.optimize as op
 #MCMC parameters
 nwalkers = 4
 ndim = 1
-nsteps = 5000
+nsteps = 4000
 nburn = nsteps/4
 
 inds = [6,7,8,9]
@@ -32,8 +32,10 @@ input_params = {"NR":300,"Rmin":0.01,
                 "Rmax":200.0,"Nbins":15,"delta":200,
                 "Rmis":0.0, "fmis":0.0,
                 "miscentering":0,"averaging":1,"single_miscentering":0}
+use_old_P = False #We can choose to use non-Takahashi P_mm by making this True
 klin = np.loadtxt("txt_files/P_files/k.txt")
-knl  = np.loadtxt("txt_files/P_files/knl.txt")
+if use_old_P: knl  = np.loadtxt("txt_files/P_files/knl.txt")
+else: knl = np.loadtxt("txt_files/P_files/k.txt")
 print klin.shape, knl.shape
 
 def do_best_fit():
@@ -44,7 +46,8 @@ def do_best_fit():
         for i,ind in zip(range(len(inds)), inds):
             z = zs[i]
             Plin = np.loadtxt("txt_files/P_files/Plin_z%.2f.txt"%z)
-            Pmm  = np.loadtxt("txt_files/P_files/Pnl_old_z%.2f.txt"%z)
+            if use_old_P: Pmm  = np.loadtxt("txt_files/P_files/Pnl_old_z%.2f.txt"%z)
+            else: Pmm  = np.loadtxt("txt_files/P_files/Pnl_z%.2f.txt"%z)
             input_params["R_bin_min"] = 0.0323*(h*(1+z))
             input_params["R_bin_max"] = 30.0*(h*(1+z))
             extras = [klin, knl, Plin, Pmm, cosmo, input_params]
@@ -61,19 +64,19 @@ def do_best_fit():
                 R = R[cut]
                 nll = lambda *args: -lnprob(*args)
                 result = op.minimize(nll, x0=true_lM[i,j],args=(R, DS, icov, cut, z, extras))
-                #print result
+
                 bf_masses[i,j] = result['x']
                 cal[i,j] = 10**true_lM[i,j]/10**bf_masses[i,j]
                 print "Best fit done for ps%d z%d, l%d"%(ps, ind, j)
                 print "Bf is ",result['x'], cal[i,j]
                 continue #end j
             continue #end i,ind
-        np.savetxt("output_files/mass_fits/bf_old_masses_ps%d.txt"%ps, bf_masses)
-        np.savetxt("output_files/mass_fits/bf_old_cal_ps%d.txt"%ps, cal)
+        np.savetxt("output_files/mass_fits/bf_masses_ps%d.txt"%ps, bf_masses)
+        np.savetxt("output_files/mass_fits/bf_cal_ps%d.txt"%ps, cal)
         continue #end ps
 
 def do_mcmc():
-    for ps in [15, 25, 35]:
+    for ps in [25]:#[15, 25, 35]:
         true_lM = np.log10(np.genfromtxt("L_ps%d_masses.txt"%ps))
         bf_masses = np.loadtxt("output_files/mass_fits/bf_masses_ps%d.txt"%ps)
         mcmc_masses = np.zeros_like(true_lM)
@@ -83,10 +86,11 @@ def do_mcmc():
         for i,ind in zip(range(len(inds)), inds):
             z = zs[i]
             Plin = np.loadtxt("txt_files/P_files/Plin_z%.2f.txt"%z)
-            Pmm  = np.loadtxt("txt_files/P_files/Pnl_z%.2f.txt"%z)
+            if use_old_P: Pmm  = np.loadtxt("txt_files/P_files/Pnl_old_z%.2f.txt"%z)
+            else: Pmm  = np.loadtxt("txt_files/P_files/Pnl_z%.2f.txt"%z)
             input_params["R_bin_min"] = 0.0323*(h*(1+z))
             input_params["R_bin_max"] = 30.0*(h*(1+z))
-            extras = [k, Plin, Pmm, cosmo, input_params]
+            extras = [klin, knl, Plin, Pmm, cosmo, input_params]
             for j in linds:
                 DSpath  = DSdatabase%(ps, i, j)
                 covpath = covdatabase%(ps, i, j)
@@ -112,7 +116,8 @@ def do_mcmc():
                 mcmc_stds[i,j] = np.std(chain)
                 cal[i,j] = 10**true_lM[i,j]/10**mcmc_masses[i,j]
                 calerr[i,j] = np.log(10) * mcmc_stds[i,j] * cal[i,j]
-                print "Best fit done for ps%d z%d, l%d"%(ps, ind, j)
+                print "MCMC done for ps%d z%d, l%d"%(ps, ind, j)
+                print "mcmc result is ",mcmc_masses[i,j], cal[i,j]
                 continue #end j
             continue #end i,ind
         np.savetxt("output_files/mass_fits/mcmc_masses_ps%d.txt"%ps, mcmc_masses)
@@ -121,5 +126,5 @@ def do_mcmc():
         continue #end ps
 
 if __name__ == "__main__":
-    do_best_fit()
-    #do_mcmc()
+    #do_best_fit()
+    do_mcmc()
