@@ -32,8 +32,10 @@ input_params = {"NR":300,"Rmin":0.01,
                 "Rmax":200.0,"Nbins":15,"delta":200,
                 "Rmis":0.0, "fmis":0.0,
                 "miscentering":0,"averaging":1,"single_miscentering":0}
-k = np.loadtxt("txt_files/P_files/k.txt")
-    
+klin = np.loadtxt("txt_files/P_files/k.txt")
+knl  = np.loadtxt("txt_files/P_files/knl.txt")
+print klin.shape, knl.shape
+
 def do_best_fit():
     for ps in [15, 25, 35]:
         true_lM = np.log10(np.genfromtxt("L_ps%d_masses.txt"%ps))
@@ -42,10 +44,10 @@ def do_best_fit():
         for i,ind in zip(range(len(inds)), inds):
             z = zs[i]
             Plin = np.loadtxt("txt_files/P_files/Plin_z%.2f.txt"%z)
-            Pmm  = np.loadtxt("txt_files/P_files/Pnl_z%.2f.txt"%z)
+            Pmm  = np.loadtxt("txt_files/P_files/Pnl_old_z%.2f.txt"%z)
             input_params["R_bin_min"] = 0.0323*(h*(1+z))
             input_params["R_bin_max"] = 30.0*(h*(1+z))
-            extras = [k, Plin, Pmm, cosmo, input_params]
+            extras = [klin, knl, Plin, Pmm, cosmo, input_params]
             for j in linds:
                 DSpath  = DSdatabase%(ps, i, j)
                 covpath = covdatabase%(ps, i, j)
@@ -66,8 +68,8 @@ def do_best_fit():
                 print "Bf is ",result['x'], cal[i,j]
                 continue #end j
             continue #end i,ind
-        np.savetxt("output_files/mass_fits/bf_masses_ps%d.txt"%ps, bf_masses)
-        np.savetxt("output_files/mass_fits/bf_cal_ps%d.txt"%ps, cal)
+        np.savetxt("output_files/mass_fits/bf_old_masses_ps%d.txt"%ps, bf_masses)
+        np.savetxt("output_files/mass_fits/bf_old_cal_ps%d.txt"%ps, cal)
         continue #end ps
 
 def do_mcmc():
@@ -120,4 +122,4 @@ def do_mcmc():
 
 if __name__ == "__main__":
     do_best_fit()
-    do_mcmc()
+    #do_mcmc()
