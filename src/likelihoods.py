@@ -28,7 +28,7 @@ def lnprior(params):
 
 def lnlike(params, R, ds, icov, flags, z, extras):
     lM = params
-    k, Plin, Pnl, cosmo, inparams = extras
+    klin, knl, Plin, Pnl, cosmo, inparams = extras
     inparams['Mass'] = 10**lM #Mpc/h
     inparams["concentration"] = conc.concentration(10**lM, '200m', z, model='diemer15')
     result = pyDS.calc_Delta_Sigma(k, Plin, k, Pnl, cosmo, inparams)
