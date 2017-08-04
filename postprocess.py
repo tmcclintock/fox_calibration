@@ -12,7 +12,7 @@ richpath = "L_ps%d_richnesses.txt"
 zs = [1.0, 0.5, 0.25, 0.0]
 fig, axarr = plt.subplots(len(zs), sharex=True, sharey=True)
 if __name__ == "__main__":
-    pss = [15, 25, 35]
+    pss = [25]#[15, 25, 35]
 
     for ps,j in zip(pss,range(len(pss))):
         bf  = np.loadtxt(bfpath%ps)

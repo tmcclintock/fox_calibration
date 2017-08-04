@@ -116,7 +116,7 @@ def do_mcmc():
                 mcmc_stds[i,j] = np.std(chain)
                 cal[i,j] = 10**true_lM[i,j]/10**mcmc_masses[i,j]
                 calerr[i,j] = np.log(10) * mcmc_stds[i,j] * cal[i,j]
-                print "MCMC done for ps%d z%d, l%d"%(ps, ind, j)
+                print "MCMC done for ps%d z%d, l%d"%(ps, i, j)
                 print "mcmc result is ",mcmc_masses[i,j], cal[i,j]
                 continue #end j
             continue #end i,ind
@@ -127,4 +127,5 @@ def do_mcmc():
 
 if __name__ == "__main__":
     #do_best_fit()
-    do_mcmc()
+    #do_mcmc()
+    #see_results() #NEED TO IMPLEMENT
