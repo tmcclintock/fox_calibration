@@ -21,8 +21,8 @@ zstrings = ["1.0", "0.5", "0.25", "0.0"]
 linds = range(0,7)
 DSdatabase      = "/calvin1/tmcclintock/DES_Y1_data/calibration_data/dss/ds_ps%d_z%d_l%d.txt"
 covdatabase     = "/calvin1/tmcclintock/DES_Y1_data/calibration_data/covs/cov_ps%d_z%d_l%d.txt"
-#DSdatabase      = "/home/tom/Desktop/DES_data/calibration_data/ds_ps%d_z%d_l%d.txt"
-#covdatabase     = "/home/tom/Desktop/DES_data/calibration_data/cov_ps%d_z%d_l%d.txt"
+svcovdatabase   = "/calvin1/tmcclintock/DES_Y1_data/calibration_data/svcovs/svcov_ps%d_z%d_l%d.txt"
+use_y1 = True
 
 #Fox cosmology
 h = 0.670435
@@ -36,7 +36,6 @@ use_old_P = False #We can choose to use non-Takahashi P_mm by making this True
 klin = np.loadtxt("txt_files/P_files/k.txt")
 if use_old_P: knl  = np.loadtxt("txt_files/P_files/knl.txt")
 else: knl = np.loadtxt("txt_files/P_files/k.txt")
-print klin.shape, knl.shape
 
 def do_best_fit(ps, zi, lj):
     true_lM = np.log10(np.genfromtxt("L_ps%d_masses.txt"%ps))[zi, lj]
@@ -48,7 +47,8 @@ def do_best_fit(ps, zi, lj):
     input_params["R_bin_max"] = 30.0*(h*(1+z)) #Mpc/h comoving
     extras = [klin, knl, Plin, Pmm, cosmo, input_params]
     DSpath  = DSdatabase%(ps, zi, lj)
-    covpath = covdatabase%(ps, zi, lj)
+    if use_y1: covpath = covdatabase%(ps, zi, lj)
+    else: covpath = svcovdatabase%(ps, zi, lj)
     R, DS = np.loadtxt(DSpath).T
     cov = np.loadtxt(covpath)
     cut = R>0.2 #Mpc
@@ -61,7 +61,8 @@ def do_best_fit(ps, zi, lj):
     result = op.minimize(nll, x0=true_lM,args=(R, DS, icov, cut, z, extras))
     bf_lM = result['x']
     bf_cal = 10**true_lM/10**bf_lM
-    print "Best fit done for ps%d z%d, l%d"%(ps, inds[zi], lj)
+    if use_y1:  print "Best fit done for ps%d z%d, l%d, C_y1"%(ps, inds[zi], lj)
+    else:  print "Best fit done for ps%d z%d, l%d, C_sv"%(ps, inds[zi], lj)
     print "Bf is ",bf_lM, bf_cal
     return 10**bf_lM
 """
@@ -154,15 +155,19 @@ def do_mcmc():
 
 if __name__ == "__main__":
     save = False
-    for ps in [25]:#[15, 25, 35]:
+    for ps in [0]:#[15, 25, 35]:
         true_M = np.genfromtxt("L_ps%d_masses.txt"%ps)
         bf_M   = np.ones_like(true_M)
         bf_cal = np.ones_like(true_M)
-        for i in xrange(0,1):#len(inds)):
-            for j in xrange(3,4):#linds:
+        for i in xrange(3,4):#len(inds)):
+            for j in xrange(3,7):#linds:
+                use_y1 = True
+                bf_M[i, j] = do_best_fit(ps, i, j)
+                use_y1 = False
                 bf_M[i, j] = do_best_fit(ps, i, j)
                 bf_cal[i, j] = true_M[i, j]/bf_M[i, j]
         if save: 
-            print "Save things here"
+            np.savetxt("output_files/mass_fits/bf_masses_ps%d.txt"%ps, bf_M)
+            np.savetxt("output_files/mass_fits/bf_cal_ps%d.txt"%ps, bf_cal)
     #do_mcmc()
     #see_results() #NEED TO IMPLEMENT
