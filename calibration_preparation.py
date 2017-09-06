@@ -29,9 +29,9 @@ dmpath_base = "/calvin1/tmcclintock/down_sampled_snapshots/snapdir_%03d/snapshot
 hhcf_savepath = "output_files/hhcf/hhcf_ps%d_z%d_l%d.txt"
 hmcf_savepath = "output_files/hmcf/hmcf_ps%d_z%d_l%d.txt"
 ds_savepath   = "output_files/ds/ds_ps%d_z%d_l%d.txt"
-DSdatabase      = "/calvin1/tmcclintock/DES_Y1_data/calibration_data/ds_ps%d_z%d_l%d.txt"
-covdatabase     = "/calvin1/tmcclintock/DES_Y1_data/calibration_data/cov_ps%d_z%d_l%d.txt"
-covinds = [2, 2, 2, 1] #Covariance matrices to use for each snap
+DSdatabase      = "/calvin1/tmcclintock/DES_Y1_data/calibration_data/dss/ds_ps%d_z%d_l%d.txt"
+covdatabase     = "/calvin1/tmcclintock/DES_Y1_data/calibration_data/covs/cov_ps%d_z%d_l%d.txt"
+covinds = [2, 2, 2, 1] #z indices for covariance matrices to use for each snap
 
 if __name__ == "__main__":
     """
@@ -66,8 +66,8 @@ if __name__ == "__main__":
     print "HMCFs created"
     """
 
-    """
-    for ps in [15, 25, 35]:
+
+    for ps in [0]:#[15, 25, 35]:
         mean_masses = np.genfromtxt("L_ps%d_masses.txt"%ps)
         for i,ind in zip(range(len(inds)), inds):
             z = zs[i]
@@ -83,9 +83,9 @@ if __name__ == "__main__":
             continue #end i,ind
         continue #end i,ind
     print "DeltaSigmas created"
-    """
 
-    for ps in [15, 25, 35]:
+
+    for ps in [0]:#[15, 25, 35]:
         for i,ind in zip(range(len(inds)), inds):
             z = zs[i]
             for j in linds:
