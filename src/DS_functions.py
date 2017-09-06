@@ -37,7 +37,8 @@ def calc_DS(R, xi_hm, Mass, redshift, savepath=None, cosmo=None):
         np.savetxt(savepath, np.array([R,DS]).T)
     return [R, DS]
 
-def create_data_vector(Rinit, DSinit, C, z, save, Csave, cosmo=None):
+def create_data_vector(Rinit, DSinit, C, Csv, z, save, Csave, Csvsave, 
+                       cosmo=None):
     if not cosmo:
         #This is the fox sim cosmology
         cosmo = {"h":0.670435,"om":0.31834,"ok":0.0}
@@ -51,4 +52,5 @@ def create_data_vector(Rinit, DSinit, C, z, save, Csave, cosmo=None):
     dsout = spl(R_data)
     np.savetxt(save, np.array([R_data,dsout]).T)
     np.savetxt(Csave, C)
+    np.savetxt(Csvsave, Csv)
     return

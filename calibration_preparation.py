@@ -19,6 +19,7 @@ zstrings = ["1.0", "0.5", "0.25", "0.0"]
 linds = range(0,7)
 halobase= "/calvin1/tmcclintock/fox_data/richness_halos/rich_snapdir_ps%d_%03d/"
 covbase = "/calvin1/tmcclintock/DES_Y1_data/tamas_v1/full-mcal-urem_y1subtr_l%d_z%d_dst_cov.dat"
+svcovbase = "/calvin1/tmcclintock/ClusterWLdata/tamas_data/subtracted_unblinded/cov_t_z%d_l%d.dat"
 mpath = halobase+"/mass_halos_ps%d_m%d_%03d.txt" #Path to mass split halos
 lpath = halobase+"/richness_halos_ps%d_l%d_%03d.txt" #Path to lam split halos
 lam_edges = [5, 10, 14, 20, 30, 45, 60, np.inf]
@@ -31,7 +32,10 @@ hmcf_savepath = "output_files/hmcf/hmcf_ps%d_z%d_l%d.txt"
 ds_savepath   = "output_files/ds/ds_ps%d_z%d_l%d.txt"
 DSdatabase      = "/calvin1/tmcclintock/DES_Y1_data/calibration_data/dss/ds_ps%d_z%d_l%d.txt"
 covdatabase     = "/calvin1/tmcclintock/DES_Y1_data/calibration_data/covs/cov_ps%d_z%d_l%d.txt"
+svcovdatabase   = "/calvin1/tmcclintock/DES_Y1_data/calibration_data/svcovs/svcov_ps%d_z%d_l%d.txt"
 covinds = [2, 2, 2, 1] #z indices for covariance matrices to use for each snap
+svcovinds  = [2, 1, 0, 0] #z indices for matchin SV covariance matrices to each snap
+svcovlinds = [0, 1, 2, 3, 4, 4, 4] #l indices for matching SV covariance matrices to each snap
 
 if __name__ == "__main__":
     """
@@ -66,8 +70,8 @@ if __name__ == "__main__":
     print "HMCFs created"
     """
 
-
-    for ps in [0]:#[15, 25, 35]:
+    """
+    for ps in [0, 15, 25, 35]:
         mean_masses = np.genfromtxt("L_ps%d_masses.txt"%ps)
         for i,ind in zip(range(len(inds)), inds):
             z = zs[i]
@@ -83,17 +87,19 @@ if __name__ == "__main__":
             continue #end i,ind
         continue #end i,ind
     print "DeltaSigmas created"
+    """
 
-
-    for ps in [0]:#[15, 25, 35]:
+    for ps in [0, 15, 25, 35]:
         for i,ind in zip(range(len(inds)), inds):
             z = zs[i]
             for j in linds:
                 R, DS = np.loadtxt(ds_savepath%(ps,i,j)).T
-                cov = np.genfromtxt(covbase%(j, covinds[i]))
-                DSsave  = DSdatabase%(ps,i,j)
-                covsave = covdatabase%(ps,i,j)
-                create_data_vector(R, DS, cov, z, DSsave, covsave)
+                cov   = np.genfromtxt(covbase%(j, covinds[i]))
+                svcov = np.genfromtxt(svcovbase%(svcovinds[i], svcovlinds[j]))
+                DSsave    = DSdatabase%(ps,i,j)
+                covsave   = covdatabase%(ps,i,j)
+                svcovsave = svcovdatabase%(ps,i,j)
+                create_data_vector(R, DS, cov, svcov, z, DSsave, covsave, svcovsave)
                 print "Data vector created for ps%d z%d, l%d"%(ps, ind, j)
                 continue  #end j
             continue #end i,ind
