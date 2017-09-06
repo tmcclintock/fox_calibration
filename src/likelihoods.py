@@ -32,8 +32,8 @@ def lnlike(params, R, ds, icov, flags, z, extras):
     inparams['Mass'] = 10**lM #Mpc/h
     inparams["concentration"] = conc.concentration(10**lM, '200m', z, model='diemer15')
     result = pyDS.calc_Delta_Sigma(klin, Plin, knl, Pnl, cosmo, inparams)
-    model = result['ave_delta_sigma']*h*(1.+z)**2 #Msun/pc^2 physical
-    model = model[flags]
+    model = result['ave_delta_sigma']*h*(1.+z)**2 #DeltaSigma in Msun/pc^2 physical
+    model = model[flags] #Scale cuts
     X = ds - model
     return -0.5*np.dot(X, np.dot(icov, X))
 

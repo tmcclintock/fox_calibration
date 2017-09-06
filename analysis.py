@@ -19,8 +19,8 @@ inds = [6,7,8,9]
 zs = [1.0, 0.5, 0.25, 0.0]
 zstrings = ["1.0", "0.5", "0.25", "0.0"]
 linds = range(0,7)
-DSdatabase      = "/calvin1/tmcclintock/DES_Y1_data/calibration_data/ds_ps%d_z%d_l%d.txt"
-covdatabase     = "/calvin1/tmcclintock/DES_Y1_data/calibration_data/cov_ps%d_z%d_l%d.txt"
+DSdatabase      = "/calvin1/tmcclintock/DES_Y1_data/calibration_data/dss/ds_ps%d_z%d_l%d.txt"
+covdatabase     = "/calvin1/tmcclintock/DES_Y1_data/calibration_data/covs/cov_ps%d_z%d_l%d.txt"
 #DSdatabase      = "/home/tom/Desktop/DES_data/calibration_data/ds_ps%d_z%d_l%d.txt"
 #covdatabase     = "/home/tom/Desktop/DES_data/calibration_data/cov_ps%d_z%d_l%d.txt"
 
@@ -38,7 +38,33 @@ if use_old_P: knl  = np.loadtxt("txt_files/P_files/knl.txt")
 else: knl = np.loadtxt("txt_files/P_files/k.txt")
 print klin.shape, knl.shape
 
-def do_best_fit():
+def do_best_fit(ps, zi, lj):
+    true_lM = np.log10(np.genfromtxt("L_ps%d_masses.txt"%ps))[zi, lj]
+    z = zs[zi]
+    Plin = np.loadtxt("txt_files/P_files/Plin_z%.2f.txt"%z)
+    if use_old_P: Pmm  = np.loadtxt("txt_files/P_files/Pnl_old_z%.2f.txt"%z)
+    else: Pmm  = np.loadtxt("txt_files/P_files/Pnl_z%.2f.txt"%z)
+    input_params["R_bin_min"] = 0.0323*(h*(1+z)) #Mpc/h comoving
+    input_params["R_bin_max"] = 30.0*(h*(1+z)) #Mpc/h comoving
+    extras = [klin, knl, Plin, Pmm, cosmo, input_params]
+    DSpath  = DSdatabase%(ps, zi, lj)
+    covpath = covdatabase%(ps, zi, lj)
+    R, DS = np.loadtxt(DSpath).T
+    cov = np.loadtxt(covpath)
+    cut = R>0.2 #Mpc
+    cov = cov[cut]
+    cov = cov[:,cut]
+    icov = np.linalg.inv(cov)
+    DS = DS[cut]
+    R = R[cut]
+    nll = lambda *args: -lnprob(*args)
+    result = op.minimize(nll, x0=true_lM,args=(R, DS, icov, cut, z, extras))
+    bf_lM = result['x']
+    bf_cal = 10**true_lM/10**bf_lM
+    print "Best fit done for ps%d z%d, l%d"%(ps, inds[zi], lj)
+    print "Bf is ",bf_lM, bf_cal
+    return 10**bf_lM
+"""
     for ps in [15, 25, 35]:
         true_lM = np.log10(np.genfromtxt("L_ps%d_masses.txt"%ps))
         bf_masses = np.zeros_like(true_lM)
@@ -48,8 +74,8 @@ def do_best_fit():
             Plin = np.loadtxt("txt_files/P_files/Plin_z%.2f.txt"%z)
             if use_old_P: Pmm  = np.loadtxt("txt_files/P_files/Pnl_old_z%.2f.txt"%z)
             else: Pmm  = np.loadtxt("txt_files/P_files/Pnl_z%.2f.txt"%z)
-            input_params["R_bin_min"] = 0.0323*(h*(1+z))
-            input_params["R_bin_max"] = 30.0*(h*(1+z))
+            input_params["R_bin_min"] = 0.0323*(h*(1+z)) #Mpc/h comoving
+            input_params["R_bin_max"] = 30.0*(h*(1+z)) #Mpc/h comoving
             extras = [klin, knl, Plin, Pmm, cosmo, input_params]
             for j in linds:
                 DSpath  = DSdatabase%(ps, i, j)
@@ -74,9 +100,10 @@ def do_best_fit():
         np.savetxt("output_files/mass_fits/bf_masses_ps%d.txt"%ps, bf_masses)
         np.savetxt("output_files/mass_fits/bf_cal_ps%d.txt"%ps, cal)
         continue #end ps
+"""
 
 def do_mcmc():
-    for ps in [25]:#[15, 25, 35]:
+    for ps in [35]:#[15, 25, 35]:
         true_lM = np.log10(np.genfromtxt("L_ps%d_masses.txt"%ps))
         bf_masses = np.loadtxt("output_files/mass_fits/bf_masses_ps%d.txt"%ps)
         mcmc_masses = np.zeros_like(true_lM)
@@ -126,6 +153,16 @@ def do_mcmc():
         continue #end ps
 
 if __name__ == "__main__":
-    #do_best_fit()
+    save = False
+    for ps in [25]:#[15, 25, 35]:
+        true_M = np.genfromtxt("L_ps%d_masses.txt"%ps)
+        bf_M   = np.ones_like(true_M)
+        bf_cal = np.ones_like(true_M)
+        for i in xrange(0,1):#len(inds)):
+            for j in xrange(3,4):#linds:
+                bf_M[i, j] = do_best_fit(ps, i, j)
+                bf_cal[i, j] = true_M[i, j]/bf_M[i, j]
+        if save: 
+            print "Save things here"
     #do_mcmc()
     #see_results() #NEED TO IMPLEMENT
