@@ -36,9 +36,15 @@ input_params = {"NR":300,"Rmin":0.01,
                 "Rmax":200.0,"Nbins":15,"delta":200,
                 "Rmis":0.0, "fmis":0.0,
                 "miscentering":0,"averaging":1,"single_miscentering":0}
+#Dictionary for colossus
+colcos = {"H0":cosmo['h']*100.,"Om0":cosmo['om'], 
+          'Ob0': 0.049017, 'sigma8': 0.83495, 'ns': 0.96191, 'flat':True}
+
 
 def get_cosmo_and_params():
     return cosmo, input_params
+def get_colcos():
+    return colcos
 
 #The power spectrum
 klin = np.loadtxt("txt_files/P_files/k.txt")
@@ -51,3 +57,14 @@ def get_P(i, use_old_P=False):
     if use_old_P: Pmm  = np.loadtxt("txt_files/P_files/Pnl_old_z%.2f.txt"%z)
     else: Pmm  = np.loadtxt("txt_files/P_files/Pnl_z%.2f.txt"%z)
     return klin, Plin, knl, Pmm
+
+#True masses
+def get_true_masses(ps, M_split=False):
+    return np.loadtxt("L_ps%d_masses.txt"%ps)
+
+#best fit results
+def get_bf_results(ps, use_y1=True):
+    if use_y1: bfpath = "output_files/mass_fits/bf_y1_masses_ps%d.txt"%ps
+    else: bfpath = "output_files/mass_fits/bf_sv_masses_ps%d.txt"%ps
+    return np.loadtxt(bfpath)
+
