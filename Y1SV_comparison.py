@@ -30,12 +30,7 @@ def plot_data(ps, zi, lj, use_y1=True):
     else: c = 'g'
     plt.errorbar(R[bad], DS[bad], DSe[bad], ls='', marker='.', mfc='w', c=c)
     plt.errorbar(R[gud], DS[gud], DSe[gud], ls='', marker='.', c=c)
-    plt.xscale('log')
-    plt.yscale('log')
-    plt.xlabel(r"$R\ [{\rm Mpc}]$")
-    plt.ylabel(r"$\Delta\Sigma\ [{\rm M_\odot/ pc^2}]$")
-    plt.subplots_adjust(bottom=0.15, left=0.15)
-    #plt.show()
+    return R, DS, DSe
 
 def plot_model(M, zi):
     z = zs[zi]
@@ -54,13 +49,15 @@ def plot_model(M, zi):
 def plot_bf(ps, zi, lj, use_y1=True):
     bfM = get_bf_results(ps, use_y1)
     R, DS = plot_model(bfM[zi, lj], zi)
-    plt.loglog(R, DS, c='r', label="Best")
+    plt.loglog(R, DS, c='r', label="Best", ls='--')
+    return R, DS
 
 def plot_truth(ps, zi, lj):
     trueM = get_true_masses(ps)
     plot_model(trueM[zi, lj], zi)
     R, DS = plot_model(trueM[zi, lj], zi)
-    plt.loglog(R, DS, c='purple', label="Truth")
+    plt.loglog(R, DS, c='blue', label="Truth")
+    return R, DS
 
 def print_info(ps, zi, lj, use_y1=True):
     trueM = get_true_masses(ps)
@@ -76,14 +73,39 @@ def get_title(ps, zi, lj, use_y1=True):
     else: s = "SV"
     return title%(ps, zs[zi], lj, s)
 
+def plot_comparison(R, DS, DSe, Rm, DSm, c='k'):
+    from scipy.interpolate import InterpolatedUnivariateSpline as IUS
+    model = IUS(Rm, DSm)
+    pdiff = (DS-model(R))/model(R)
+    epd   = DSe/model(R)
+    bad = R < 0.2 #Mpc
+    gud = R > 0.2 #Mpc
+    plt.errorbar(R[bad], pdiff[bad], epd[bad], ls='', marker='.', mfc='w', c=c)
+    plt.errorbar(R[gud], pdiff[gud], epd[gud], ls='', marker='.', c=c)
+    plt.axhline(0, c='k')
+    return
+
 if __name__ == "__main__":
     use_y1 = True
-    plot_data(0, 0, 4, False)
-    plot_data(0, 0, 4, use_y1)
-    plot_bf(0, 0, 4, use_y1)
-    plot_truth(0, 0, 4)
-    plt.legend(loc=0)
+    fig, axarr = plt.subplots(2, sharex=True)
+    plt.sca(axarr[0])
+    R, DS, DSe = plot_data(0, 0, 4, False)
+    R, DS, DSe = plot_data(0, 0, 4, use_y1)
+    Rt, DSt = plot_truth(0, 0, 4)
+    Rbf, DSbf = plot_bf(0, 0, 4, use_y1)
+    plt.legend(loc=0, fontsize=12)
+    plt.sca(axarr[1])
+    plot_comparison(R, DS, DSe, Rt, DSt, c="blue")
+    plot_comparison(R, DS, DSe, Rbf, DSbf, c="red")
     print_info(0, 0, 4, use_y1)
     title = get_title(0, 0, 4, use_y1)
-    plt.title(title)
+    #plt.title(title)
+    plt.xscale('log')
+    plt.yscale('log')
+    axarr[1].set_yscale('linear')
+    axarr[1].set_xlabel(r"$R\ [{\rm Mpc}]$")
+    axarr[1].set_ylabel("Frac. Diff.")
+    axarr[0].set_ylabel(r"$\Delta\Sigma\ [{\rm M_\odot/ pc^2}]$")
+    plt.subplots_adjust(bottom=0.15, left=0.15, hspace=0.0)
+    plt.savefig("y1sv_comparison.png"
     plt.show()
