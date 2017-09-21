@@ -79,7 +79,10 @@ def calc_hmcf(halo_path, RR, DdRd, Dd, Rh, savepath=None, config=config_default)
 
     Args:
         halo_path (string): Path to the halo catalog
-        dm_path (string): Path to the DM catalog
+        RR: Corrfunc output for the RR counts
+        DdRd: Corrfunc output for dark matter particles counted against randoms
+        Dd: Array containing locations of dm particles
+        Rh: Array containing locations of halo randoms
         save_path (string): Path to save the output
         config (dictionary): Configuration of the Corrfunc run. Default is
         config_default
