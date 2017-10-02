@@ -10,47 +10,52 @@ from colossus.halo import concentration as conc
 from colossus.cosmology import cosmology as col_cosmology
 from astropy.cosmology import FlatLambdaCDM
 from scipy.interpolate import InterpolatedUnivariateSpline as IUS
+import clusterwl
+import helper_functions as HF
+cosmo = HF.get_cosmo()
+h = cosmo['h']
+om = cosmo['om']
+
+def get_conc(M, z):
+    colcos = {"H0":cosmo['h']*100.,"Om0":cosmo['om'], 
+              'Ob0': 0.049017, 'sigma8': 0.83495, 'ns': 0.96191, 'flat':True}
+    col_cosmology.addCosmology('fox_cosmology', colcos)
+    col_cosmology.setCosmology('fox_cosmology')
+
+    om = cosmo['om']
+    return conc.concentration(M, '200m', z, model='diemer15')
 
 #The radial locations of the actual data.
-nbins = 15
-bins = np.logspace(np.log10(0.0323), np.log10(30.0), nbins+1)
-R_data = (bins[:-1]+bins[1:])/2. #Locations of the data bins; Mpc physical
+def get_binning(y1_binning = True): #Mpc physical
+    nbins = 15
+    if y1_binning: Redges = np.logspace(np.log10(0.0323), np.log10(30.0), nbins+1)
+    else: Redges = np.logspace(np.log10(0.02), np.log10(30.0), nbins+1) #SV binning
+    R_mid = (Redges[:-1]+Redges[1:])/2. #Locations of the data bin edges; Mpc physical
+    return Redges, R_mid
 
-def calc_DS(R, xi_hm, Mass, redshift, savepath=None, cosmo=None):
-    if not cosmo:
-        #This is the fox sim cosmology
-        cosmo = {"h":0.670435,"om":0.31834,"ok":0.0}
-        cosmo["ode"]=1.0-cosmo["om"]
-        #Here is the same cosmology but for cosmocalc
-        colcos = {"H0":cosmo['h']*100.,"Om0":cosmo['om'], 
-                  'Ob0': 0.049017, 'sigma8': 0.83495, 'ns': 0.96191, 'flat':True}
-        col_cosmology.addCosmology('fiducial_cosmology', colcos)
-        col_cosmology.setCosmology('fiducial_cosmology')
+def calc_DS(R, xi_hm, Mass, z, Rmodel, xi_mm, k, Plin, Pnl, dssave=None, avsave=None, y1_binning=True):
+    c = get_conc(Mass, z)
+    xi_nfw   = clusterwl.xi.xi_nfw_at_R(Rmodel, Mass, c, om)
+    bias = clusterwl.bias.bias_at_M(Mass, k, Plin, om)
+    xi_2halo = clusterwl.xi.xi_2halo(bias, xi_mm)
+    xi_hm_model    = clusterwl.xi.xi_hm(xi_nfw, xi_2halo)
 
-    params = {"Mass": Mass, "delta":200, 
-              "timing":1, "miscentering":0}
-    params["concentration"] = conc.concentration(Mass, '200m', redshift, 
-                                                 model='diemer15')
-    results = BDS.build_Delta_Sigma(R, xi_hm, cosmo, params)
-    DS = results['delta_sigma']
-    if savepath:
-        np.savetxt(savepath, np.array([R,DS]).T)
-    return [R, DS]
+    low  = Rmodel < 0.1 #R[0] #Things are fucked up lower than 0.1 Mpc
+    high = Rmodel > R[-1]
+    datacut = R > 0.1
+    Rall = np.concatenate((Rmodel[low], R[datacut]))
+    Rall = np.concatenate((Rall, Rmodel[high]))
+    xi_hm_full = np.concatenate((xi_hm_model[low], xi_hm[datacut]))
+    xi_hm_full = np.concatenate((xi_hm_full, xi_hm_model[high]))
 
-def create_data_vector(Rinit, DSinit, C, Csv, z, save, Csave, Csvsave, 
-                       cosmo=None):
-    if not cosmo:
-        #This is the fox sim cosmology
-        cosmo = {"h":0.670435,"om":0.31834,"ok":0.0}
-        cosmo["ode"]=1.0-cosmo["om"]
-    h = cosmo['h']
-    #change units to Msun,Mpc physical
-    R = Rinit/(h*(1+z))
-    DS = DSinit*h*(1+z)**2
-    #Spline to get the curve at R_data
-    spl = IUS(R,DS)
-    dsout = spl(R_data)
-    np.savetxt(save, np.array([R_data,dsout]).T)
-    np.savetxt(Csave, C)
-    np.savetxt(Csvsave, Csv)
-    return
+    Rp = np.logspace(-2, 2.4, 1000, base=10) #Mpc/h
+    Sigma  = clusterwl.deltasigma.Sigma_at_R(Rp, Rall, xi_hm_full, Mass, c, om)
+    DeltaSigma = clusterwl.deltasigma.DeltaSigma_at_R(Rp, Rp, Sigma, Mass, c, om)
+    Redges, Rmid = get_binning(y1_binning) #Redges in Mpc physical
+    ave_profile = np.zeros((len(Redges)-1))
+    #Convert units to Msun, Mpc physical and then calculate the averages
+    clusterwl.averaging.average_profile_in_bins(Redges, Rp/(h*(1+z)), DeltaSigma*h*(1+z)**2, ave_profile)
+
+    if dssave:  np.savetxt(dssave, np.array([Rp, DeltaSigma]).T)
+    if avsave:  np.savetxt(avsave, np.array([Rmid, ave_profile]).T)
+    return [Rp, DeltaSigma, Rmid, ave_profile]

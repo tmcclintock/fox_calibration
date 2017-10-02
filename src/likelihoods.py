@@ -1,45 +1,47 @@
 import numpy as np
-import os, sys, emcee
-import scipy.optimize as op
-sys.path.insert(0, "../Delta-Sigma/src/wrapper/")
-import py_Delta_Sigma as pyDS
-from colossus.halo import concentration as conc
-from colossus.cosmology import cosmology as col_cosmology
+import os, sys
+from models import *
+import helper_functions as HF
+cosmo = HF.get_cosmo()
+h = cosmo['h']
+om = cosmo['om']
 
-#This is the fox sim cosmology
-h = 0.670435
-cosmo = {"h":h,"om":0.31834,"ok":0.0}
-cosmo["ode"]=1.0-cosmo["om"]
-colcos = {"H0":cosmo['h']*100.,"Om0":cosmo['om'], 
-          'Ob0': 0.049017, 'sigma8': 0.83495, 'ns': 0.96191, 'flat':True}
-col_cosmology.addCosmology('fiducial_cosmology', colcos)
-col_cosmology.setCosmology('fiducial_cosmology')
-input_params = {"NR":300,"Rmin":0.01,
-                "Rmax":200.0,"Nbins":15,"delta":200,
-                "Rmis":0.0, "fmis":0.0,
-                "miscentering":0,"averaging":1}
+"""
+Log prior
+Note: depending on what model we have, many of these factors will just be turned off.
+"""
+def lnprior(params, name):
+    lM, c, tau, fmis, Am, B0, Rs, sigb = model_swap(params, name)
+    if lM < 11.0 or lM > 18.0 or c <= 0.0 or c > 20.0 or Am <= 0.0 or tau <= 0.0 or Rs <=0.0 or B0 < 0.0 or sigb < 0.0 or fmis < 0.0 or fmis > 1.0: return -np.inf
+    #Note: Rlam is Mpc/h here
+    LPfmis = (0.32 - fmis)**2/0.05**2 #Y1
+    LPtau  = (0.153 - tau)**2/0.03**2 #Y1
+    LPA    = (1.02 - Am)**2/0.038**2 #SV
+    return -0.5*(LPfmis + LPtau + LPA)
 
-#Write the likelihoods
-def lnprior(params):
-    lM = params
-    #Mass to low or too high
-    if lM < 10 or lM > 18: return -np.inf
-    return 0.0
+"""
+Log posterior of the DeltaSigma model
+"""
+def lnlike(params, args):
+    z, lam, Rlam, Rdata, ds, icov, cov, cosmo, k, Plin, Pnl, Rmodel, xi_mm, Redges, indices, model_name = args
+    lM, c, tau, fmis, Am, B0, Rs, sigb = model_swap(params, model_name)
 
-def lnlike(params, R, ds, icov, flags, z, extras):
-    lM = params
-    klin, knl, Plin, Pnl, cosmo, inparams = extras
-    inparams['Mass'] = 10**lM #Msun/h
-    inparams["concentration"] = conc.concentration(10**lM, '200m', z, model='diemer15')
-    result = pyDS.calc_Delta_Sigma(klin, Plin, knl, Pnl, cosmo, inparams)
-    model = result['ave_delta_sigma']*h*(1.+z)**2 #DeltaSigma in Msun/pc^2 physical
-    model = model[flags] #Scale cuts
-    X = ds - model
-    return -0.5*np.dot(X, np.dot(icov, X))
+    LLDS = 0
+    Rp, full_DeltaSigma, ave_DeltaSigma = get_delta_sigma(params, z, Rlam, cosmo, k, Plin, Pnl, Rmodel, xi_mm, Redges, model_name)
+    ds_model = ave_DeltaSigma[indices]
+    #print indices
+    #sys.exit()
+    ds_model *= h*(1+z)**2 #make the model physical
+    X = ds - ds_model
+    LLDS = -0.5*np.dot(X, np.dot(icov, X))
+    return LLDS #+ LLboost #no boost factors in fake data
 
-def lnprob(params, R, ds, icov, flags, z, extras):
-    lM = params
-    lpr = lnprior(params)
+
+"""
+Log posterior probability
+"""
+def lnprob(params, args):
+    z, lam, Rlam, Rdata, ds, icov, cov, cosmo, k, Plin, Pnl, Rmodel, xi_mm, Redges, indices, model_name = args
+    lpr = lnprior(params, model_name)
     if not np.isfinite(lpr): return -np.inf
-    return lpr + lnlike(params, R, ds, icov, flags, z, extras)
-
+    return lpr + lnlike(params, args)

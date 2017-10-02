@@ -4,13 +4,14 @@ Here I actually do the calibration analysis, calling the optimizer/MCMC for each
 import os, sys
 sys.path.insert(0,"./src/")
 from likelihoods import *
-from get_data import *
+from helper_functions import *
 import numpy as np
 import matplotlib.pyplot as plt
 import emcee
 import scipy.optimize as op
+import clusterwl
 
-use_y1 = True
+use_y1 = False
 
 #MCMC parameters
 nwalkers = 4
@@ -19,55 +20,24 @@ nsteps = 4000
 nburn = nsteps/4
 
 #Fox cosmology
-h = 0.670435
+cosmo = get_cosmo()
+h = cosmo['h']
+om = cosmo['om']
+zs, zstrings = get_zs()
 
-def do_best_fit(ps, zi, lj):
-    true_lM = np.log10(np.genfromtxt("L_ps%d_masses.txt"%ps))[zi, lj]
-    z = zs[zi]
-    klin, Plin, knl, Pmm = get_P(zi)
-    cosmo, input_params = get_cosmo_and_params()
-    input_params["R_bin_min"] = 0.0323*(h*(1+z)) #Mpc/h comoving
-    input_params["R_bin_max"] = 30.0*(h*(1+z)) #Mpc/h comoving
-    extras = [klin, knl, Plin, Pmm, cosmo, input_params]
-    R, DS, cov, cut = get_data_and_cov(ps, zi, lj, use_y1)
-    icov = np.linalg.inv(cov)
+def do_best_fit(bf_args, ps, zi, lj, true_M):
+    z, lam, Rlam, Rdata, ds, icov, cov, cosmo, k, Plin, Pnl, Rmodel, xi_mm, Redges, indices, model_name = bf_args
+    true_lM = np.log10(true_M)
+
+    guess = [true_lM, 5.0] #second is concentration
     nll = lambda *args: -lnprob(*args)
-    result = op.minimize(nll, x0=true_lM,args=(R, DS, icov, cut, z, extras))
-    bf_lM = result['x']
-    bf_cal = 10**true_lM/10**bf_lM
-    if use_y1:  print "Best fit done for ps%d z%d, l%d, C_y1"%(ps, inds[zi], lj)
-    else:  print "Best fit done for ps%d z%d, l%d, C_sv"%(ps, inds[zi], lj)
-    print "Bf is ",bf_lM, bf_cal
-    return 10**bf_lM
+    result = op.minimize(nll, x0=guess, args=bf_args)
+    print result
+    return [10**result['x'][0], result['x'][1]]
 
 def do_mcmc():
-    for ps in [35]:#[15, 25, 35]:
-        true_lM = np.log10(np.genfromtxt("L_ps%d_masses.txt"%ps))
-        bf_masses = np.loadtxt("output_files/mass_fits/bf_masses_ps%d.txt"%ps)
-        mcmc_masses = np.zeros_like(true_lM)
-        mcmc_stds   = np.zeros_like(mcmc_masses)
-        cal     = np.zeros_like(mcmc_masses)
-        calerr = np.zeros_like(mcmc_masses)
-        for i,ind in zip(range(len(inds)), inds):
-            z = zs[i]
-            Plin = np.loadtxt("txt_files/P_files/Plin_z%.2f.txt"%z)
-            if use_old_P: Pmm  = np.loadtxt("txt_files/P_files/Pnl_old_z%.2f.txt"%z)
-            else: Pmm  = np.loadtxt("txt_files/P_files/Pnl_z%.2f.txt"%z)
-            input_params["R_bin_min"] = 0.0323*(h*(1+z))
-            input_params["R_bin_max"] = 30.0*(h*(1+z))
-            extras = [klin, knl, Plin, Pmm, cosmo, input_params]
-            for j in linds:
-                DSpath  = DSdatabase%(ps, i, j)
-                covpath = covdatabase%(ps, i, j)
-                R, DS = np.loadtxt(DSpath).T
-                cov = np.loadtxt(covpath)
-                cut = R>0.2 #Mpc
-                cov = cov[cut]
-                cov = cov[:,cut]
-                icov = np.linalg.inv(cov)
-                DS = DS[cut]
-                R = R[cut]
-                sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob, args=(R, DS, icov, cut, z, extras), threads=4)
+    """
+                sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob, args=(R, DS, icov, z, extras), threads=4)
                 pos = [bf_masses[i, j] + 1e-4*np.random.randn(ndim) for nw in range(nwalkers)]
                 print "Running chain for z=%f l%d starting at lM=%.3f"%(z, j, bf_masses[i,j])
                 sampler.run_mcmc(pos, nsteps)
@@ -89,26 +59,48 @@ def do_mcmc():
         np.savetxt("output_files/mass_fits/mcmc_cal_ps%d.txt"%ps, cal)
         np.savetxt("output_files/mass_fits/mcmc_calerr_ps%d.txt"%ps, calerr)
         continue #end ps
+        """
+    return 0
 
 if __name__ == "__main__":
-    save = False
+    save = True
     for ps in [0]:#[15, 25, 35]:
-        true_M = np.genfromtxt("L_ps%d_masses.txt"%ps)
+        lams = get_lams(ps)
+        Rlams = (lams/100.0)**0.2 #Mpc/h; richness radius
+        true_M = get_true_M(ps)
         bf_M   = np.ones_like(true_M)
+        bf_c   = np.ones_like(true_M)
         bf_cal = np.ones_like(true_M)
-        for i in xrange(0,4):#len(inds)):
+        for i in xrange(0,4):
+            z = zs[i]
+            k, Plin, Pnl = get_P(z)
+            Rmodel = np.logspace(-2, 3, num=1000, base=10) 
+            xi_mm = clusterwl.xi.xi_mm_at_R(Rmodel, k, Pnl)
             for j in xrange(0,7):#linds:
-                #use_y1 = True
-                bf_M[i, j] = do_best_fit(ps, i, j)
-                #use_y1 = False
-                #bf_M[i, j] = do_best_fit(ps, i, j)
-                bf_cal[i, j] = true_M[i, j]/bf_M[i, j]
+                print "Starting analysis for z%d z=%.2f l%d"%(i, z, j)
+                lam = lams[i, j]
+                Rlam = Rlams[i, j]
+                #Xi_mm MUST be evaluated to higher than BAO for correct accuracy
+                model_name = "Mc"
+
+                Rdata, ds, icov, cov, inds = get_data_and_cov(ps, i, j, use_y1=use_y1, nocut=False)
+                Redges = get_Redges(use_y1)*h*(1+z) #Made Mpc/h comoving
+                args = [z, lam, Rlam, Rdata, ds, icov, cov, cosmo, k, Plin, Pnl, Rmodel, xi_mm, Redges, inds, model_name]
+                
+                bf_M[i, j], bf_c[i, j] = do_best_fit(args, ps, i, j, true_M[i,j])
+                bf_cal[i,j] = true_M[i, j]/bf_M[i, j]
+                print "Best fit done for ps%d z%d z=%.2f l%d"%(ps, i, z, j)
+                print "Bf is ",bf_M[i, j], bf_cal[i, j]
+                continue #end j
+            continue #end i
         if save:
             if use_y1:
                 np.savetxt("output_files/mass_fits/bf_y1_masses_ps%d.txt"%ps, bf_M)
+                np.savetxt("output_files/mass_fits/bf_y1_conc_ps%d.txt"%ps, bf_c)
                 np.savetxt("output_files/mass_fits/bf_y1_cal_ps%d.txt"%ps, bf_cal)
             else:
                 np.savetxt("output_files/mass_fits/bf_sv_masses_ps%d.txt"%ps, bf_M)
+                np.savetxt("output_files/mass_fits/bf_sv_conc_ps%d.txt"%ps, bf_c)
                 np.savetxt("output_files/mass_fits/bf_sv_cal_ps%d.txt"%ps, bf_cal)
 
     #do_mcmc()
