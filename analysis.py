@@ -29,10 +29,12 @@ def do_best_fit(bf_args, ps, zi, lj, true_M):
     z, lam, Rlam, Rdata, ds, icov, cov, cosmo, k, Plin, Pnl, Rmodel, xi_mm, Redges, indices, model_name = bf_args
     true_lM = np.log10(true_M)
 
-    guess = [true_lM, 5.0] #second is concentration
+    if model_name is 'Mc':guess = [true_lM, 4.1] 
+    elif model_name is "full_calibration": guess = [true_lM, 4.1, 0.153, 0.32, 1.02]
     nll = lambda *args: -lnprob(*args)
     result = op.minimize(nll, x0=guess, args=bf_args)
     print result
+    np.savetxt("output_files/bf_files/bf_ps%d_z%d_l%d.txt"%(ps, zi, lj), result['x'])
     return [10**result['x'][0], result['x'][1]]
 
 def do_mcmc():
@@ -81,7 +83,7 @@ if __name__ == "__main__":
                 lam = lams[i, j]
                 Rlam = Rlams[i, j]
                 #Xi_mm MUST be evaluated to higher than BAO for correct accuracy
-                model_name = "Mc"
+                model_name = "full_calibration"
 
                 Rdata, ds, icov, cov, inds = get_data_and_cov(ps, i, j, use_y1=use_y1, nocut=False)
                 Redges = get_Redges(use_y1)*h*(1+z) #Made Mpc/h comoving

@@ -33,7 +33,7 @@ def get_binning(y1_binning = True): #Mpc physical
     R_mid = (Redges[:-1]+Redges[1:])/2. #Locations of the data bin edges; Mpc physical
     return Redges, R_mid
 
-def calc_DS(R, xi_hm, Mass, z, Rmodel, xi_mm, k, Plin, Pnl, dssave=None, avsave=None, y1_binning=True):
+def calc_DS(R, xi_hm, Mass, z, Rmodel, xi_mm, k, Plin, Pnl, Rlam, dssave=None, avsave=None, y1_binning=True):
     c = get_conc(Mass, z)
     xi_nfw   = clusterwl.xi.xi_nfw_at_R(Rmodel, Mass, c, om)
     bias = clusterwl.bias.bias_at_M(Mass, k, Plin, om)
@@ -51,11 +51,21 @@ def calc_DS(R, xi_hm, Mass, z, Rmodel, xi_mm, k, Plin, Pnl, dssave=None, avsave=
     Rp = np.logspace(-2, 2.4, 1000, base=10) #Mpc/h
     Sigma  = clusterwl.deltasigma.Sigma_at_R(Rp, Rall, xi_hm_full, Mass, c, om)
     DeltaSigma = clusterwl.deltasigma.DeltaSigma_at_R(Rp, Rp, Sigma, Mass, c, om)
+    #Add in miscentering and multiplicative bias
+    Am = 1.02 #SV central
+    fmis = 0.32 #Y1 central
+    tau = 0.153 #Y1 central
+    Rmis = tau*Rlam #Mpc/h
+    Sigma_mis  = clusterwl.miscentering.Sigma_mis_at_R(Rp, Rp, Sigma, Mass, c, om, Rmis, kernel="exponential")
+    DeltaSigma_mis = clusterwl.miscentering.DeltaSigma_mis_at_R(Rp, Rp, Sigma_mis)
+    full_profile = (1-fmis)*DeltaSigma + fmis*DeltaSigma_mis
+    full_profile *= Am #multiplicative bias
+  
     Redges, Rmid = get_binning(y1_binning) #Redges in Mpc physical
     ave_profile = np.zeros((len(Redges)-1))
     #Convert units to Msun, Mpc physical and then calculate the averages
-    clusterwl.averaging.average_profile_in_bins(Redges, Rp/(h*(1+z)), DeltaSigma*h*(1+z)**2, ave_profile)
+    clusterwl.averaging.average_profile_in_bins(Redges, Rp/(h*(1+z)), full_profile*h*(1+z)**2, ave_profile)
 
-    if dssave:  np.savetxt(dssave, np.array([Rp, DeltaSigma]).T)
+    if dssave:  np.savetxt(dssave, np.array([Rp, full_profile]).T)
     if avsave:  np.savetxt(avsave, np.array([Rmid, ave_profile]).T)
     return [Rp, DeltaSigma, Rmid, ave_profile]

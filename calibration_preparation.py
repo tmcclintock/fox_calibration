@@ -63,11 +63,13 @@ def make_HMCFs():
         continue #end i,ind
     print "HMCFs created"
 
-fory1 = True
+fory1 = False
 if fory1: DSdatabase = "/calvin1/tmcclintock/DES_DATA_FILES/fox_data_files/y1ds_ps%d_z%d_l%d.txt"
 else:     DSdatabase = "/calvin1/tmcclintock/DES_DATA_FILES/fox_data_files/svds_ps%d_z%d_l%d.txt"
 
 def make_DSs(ps):
+    lams = HF.get_lams(ps)
+    Rlams = (lams/100.0)**0.2 #Mpc/h; richness radius
     mean_masses = np.genfromtxt("txt_files/L_ps%d_masses.txt"%ps)
     for i,ind in zip(range(len(inds)), inds):
         z = zs[i]
@@ -76,12 +78,13 @@ def make_DSs(ps):
         xi_mm = clusterwl.xi.xi_mm_at_R(Rmodel, k, Pnl)
 
         for j in linds:
+            Rlam = Rlams[i, j]
             Mass = mean_masses[i,j]
             R, xihm = np.loadtxt(hmcf_savepath%(ps,i,j))
             hminds = np.invert(np.isnan(xihm)+(xihm==1.0))
             R = R[hminds]
             xihm = xihm[hminds]
-            Rfull, DS, Rmid, aDS = calc_DS(R, xihm, Mass, z, Rmodel, xi_mm, k, Plin, Pnl, dssave=ds_savepath%(ps, i, j), avsave = DSdatabase%(ps, i, j), y1_binning=fory1)
+            Rfull, DS, Rmid, aDS = calc_DS(R, xihm, Mass, z, Rmodel, xi_mm, k, Plin, Pnl, Rlam, dssave=ds_savepath%(ps, i, j), avsave = DSdatabase%(ps, i, j), y1_binning=fory1)
             print "DeltaSigma ps%d z%.2f, l%d complete"%(ps,z,j)
             continue #end j
     print "DeltaSigmas created for ps%d"%ps
