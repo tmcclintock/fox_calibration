@@ -84,7 +84,7 @@ def get_model_defaults(h):
                 'conc'    : 5.0, #Arbitrary
                 'tau' : 0.153, #Y1
                 'fmis' : 0.32, #Y1
-                'Am'    : 1.02, #SV result still...
+                'Am'    : 1.02, #Y1 approx.
                 'B0'   : 0.07, #Y1
                 'Rs'   : 2.49,  #Y1; Mpc physical
                 'sig_b': 0.005} #Y1 boost scatter
