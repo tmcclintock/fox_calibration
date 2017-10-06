@@ -6,9 +6,12 @@ import clusterwl
 from CF_functions import *
 from DS_functions import *
 import helper_functions as HF
+plt.rc("text", usetex=True)
+plt.rc("font", size=18)
 cosmo = HF.get_cosmo()
 h = cosmo['h']
 om = cosmo['om']
+from scipy.interpolate import InterpolatedUnivariateSpline as IUS
 
 zs = [1.0, 0.5, 0.25, 0.0]
 hmcf_savepath = "output_files/hmcf/hmcf_ps%d_z%d_l%d.txt"
@@ -45,11 +48,30 @@ def check_hmcfs(ps, i, j):
     lM = np.log10(mean_masses[i, j])
     M = 10**lM
     c = get_conc(M, z)
-    Rmodel, xi_nfw, xi_2halo, xi_hm = get_xi_model(M, c, z)
-    plt.loglog(Rmodel, xi_nfw, c='purple', ls='--', label='1h')
-    plt.loglog(Rmodel, xi_2halo, c='orange', ls='--', label='2h')
-    plt.loglog(R, xihm, label='sim')
-    plt.legend(loc=0)
+    Rmodel, xi_nfw, xi_2halo, xi_hm_model = get_xi_model(M, c, z)
+    xispl = IUS(Rmodel, xi_hm_model)
+    pdiff = (xihm - xispl(R))/xispl(R)
+
+    f, axarr = plt.subplots(2, sharex=True)
+    
+    axarr[0].loglog(Rmodel, xi_nfw, c='red', ls='--', label=r'$1-{\rm halo}')
+    axarr[0].loglog(Rmodel, xi_2halo, c='orange', ls='--', label=r'$2-{\rm halo}$')
+    axarr[0].loglog(R, np.fabs(xihm), c='blue', label=r'${\rm Sim}$')
+    axarr[1].plot(R, pdiff, c='k')
+    axarr[1].axhline(0, ls='--', c='k')
+
+    leg = axarr[0].legend(loc=0, fancybox=True, frameon=False, fontsize=16)
+    plt.xlim(1e-1, 4e1)
+    axarr[0].set_ylim(1e-2, 2e4)
+    P = 0.30
+    #axarr[1].set_ylim(-0.33, 0.33)
+    axarr[1].set_ylim(-P, P)
+    plt.xlabel(r"$R\ [{\rm Mpc}/h]$")
+    axarr[0].set_ylabel(r"${\rm Halo-matter\ clustering}$")
+    axarr[1].set_ylabel(r"$\%\ {\rm Diff}$")
+    plt.subplots_adjust(bottom=0.15, left=0.18, hspace=0)
+    #plt.gcf().savefig("xihm.eps")
+    plt.gcf().savefig("xihm.pdf")
     plt.show()
 
 def check_ds(ps, i, j, bf=False, y1=True):
@@ -79,13 +101,13 @@ def check_ds(ps, i, j, bf=False, y1=True):
     plt.loglog(Rpd, DS, label='sim')
     
     #Convert the data to Msun/h comoving
-    plt.loglog(Rmidsv*h*(1+z), svDS/(h*(1+z)**2), label='sv sim', marker='.', ls='')
-    plt.loglog(Rmidy1*h*(1+z), y1DS/(h*(1+z)**2), label='y1 sim', marker='.', ls='')
+    #plt.loglog(Rmidsv*h*(1+z), svDS/(h*(1+z)**2), label='sv sim', marker='.', ls='')
+    #plt.loglog(Rmidy1*h*(1+z), y1DS/(h*(1+z)**2), label='y1 sim', marker='.', ls='')
     plt.legend(loc = 0)
     plt.show()
 
 
 if __name__ == "__main__":
-    ps, zi, lj = 0, 0, 4
+    ps, zi, lj = 0, 3, 4
     check_hmcfs(ps, zi, lj)
-    check_ds(ps, zi, lj, bf=True, y1=False)
+    #check_ds(ps, zi, lj, bf=False, y1=False)
